@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Files WebUI</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <!-- Контейнер для анимации снега/дождя -->
+    <div id="particles"></div>
+
+    <div id="app">
+        <header class="header">
+            <div class="logo">
+                <span class="icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+                </span>
+                DemonsCheats
+            </div>
+            <button class="menu-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </button>
+        </header>
+
+        <main id="view-library" class="view active">
+            <div class="search-wrapper">
+                <!-- Кнопка профиля теперь работает -->
+                <div class="user-icon glass" id="top-profile-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                </div>
+                <div class="search-bar glass">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" placeholder="Поиск по каталогу..." id="search-input">
+                </div>
+                <button class="filter-btn glass" id="filter-toggle">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
+                </button>
+            </div>
+
+            <!-- Теги генерируются скриптом -->
+            <div class="categories" id="categories-container"></div>
+
+            <div class="cards-container" id="cards-container">
+                <div style="text-align: center; color: var(--text-muted); padding: 20px;">Загрузка файлов...</div>
+            </div>
+        </main>
+
+        <main id="view-profile" class="view">
+            <h2 class="page-title">Профиль</h2>
+            
+            <!-- Блок 1: Пользователь -->
+            <div class="profile-block glass">
+                <div class="block-title">Пользователь</div>
+                <div class="profile-card">
+                    <div class="avatar" id="user-avatar">?</div>
+                    <div class="user-details">
+                        <h3 id="user-name">Гость</h3>
+                        <p id="user-id" class="muted-text">ID: ---</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Блок 2: Статистика -->
+            <div class="profile-block glass">
+                <div class="block-title">Статистика</div>
+                <div class="stat-row border-bottom">
+                    <span class="stat-label">🟢 Статус</span>
+                    <span class="online-text">Онлайн</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">⬇️ Скачано файлов</span>
+                    <span class="stat-value" id="downloads-count">0</span>
+                </div>
+            </div>
+
+            <!-- Блок 3: Темы -->
+            <div class="profile-block glass">
+                <div class="block-title">Тема оформления</div>
+                <label class="theme-option">
+                    <div class="theme-label-inner"><span class="theme-icon">⬛</span> Ничего</div>
+                    <input type="radio" name="theme" value="none" checked><span class="radio-custom"></span>
+                </label>
+                <div class="divider"></div>
+                <label class="theme-option">
+                    <div class="theme-label-inner"><span class="theme-icon">🌧</span> Дождь</div>
+                    <input type="radio" name="theme" value="rain"><span class="radio-custom"></span>
+                </label>
+                <div class="divider"></div>
+                <label class="theme-option">
+                    <div class="theme-label-inner"><span class="theme-icon">❄️</span> Снегопад</div>
+                    <input type="radio" name="theme" value="snow"><span class="radio-custom"></span>
+                </label>
+                <div class="divider"></div>
+                <label class="theme-option">
+                    <div class="theme-label-inner"><span class="theme-icon">☀️</span> Солнечные блики</div>
+                    <input type="radio" name="theme" value="sun"><span class="radio-custom"></span>
+                </label>
+            </div>
+        </main>
+
+        <nav class="bottom-nav glass">
+            <button class="nav-btn active" data-target="view-library">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                <span>Библиотека</span>
+            </button>
+            <button class="nav-btn" data-target="view-profile" id="bottom-profile-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <span>Профиль</span>
+            </button>
+        </nav>
+    </div>
+
+    <div id="modal-overlay" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 id="modal-title">Demonscheats</h3>
+                <button class="modal-close-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div id="modal-body" class="modal-body"></div>
+            <button class="modal-close-btn">Закрыть</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

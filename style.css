@@ -1,0 +1,680 @@
+:root {
+    --bg-color: #080808;
+    --accent-orange: #ff6a00;
+    --accent-orange-hover: #e65c00;
+    --text-main: #ffffff;
+    --text-muted: #a0a0a0;
+    --glass-bg: rgba(25, 25, 25, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.05);
+    --modal-bg: #1c1c1e;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    overflow-x: hidden;
+    padding-bottom: 90px;
+    min-height: 100vh; /* Чтобы фон всегда растягивался на весь экран */
+}
+
+body.theme-rain, body.theme-snow, body.theme-sun {
+    background-attachment: fixed !important; 
+}
+
+.glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    
+    /* Включаем аппаратное ускорение для устранения полос/артефактов */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    will-change: transform;
+}
+
+.raindrop, .snowflake {
+    will-change: transform, opacity;
+}
+
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+}
+
+.logo {
+    font-size: 22px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.logo .icon {
+    color: var(--accent-orange);
+    display: flex;
+}
+
+.menu-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+}
+
+.view {
+    display: none;
+    padding: 0 15px;
+}
+.view.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Строка поиска и фильтр */
+.search-wrapper {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.user-icon, .filter-btn {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    border-radius: 14px;
+    cursor: pointer;
+}
+
+.search-bar {
+    display: flex;
+    align-items: center;
+    padding: 0 15px;
+    flex-grow: 1;
+    border-radius: 14px;
+    background: rgba(40, 40, 40, 0.6); /* Более выделенный фон */
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.search-bar input {
+    background: none;
+    border: none;
+    color: white;
+    width: 100%;
+    margin-left: 10px;
+    outline: none;
+    font-size: 15px;
+}
+
+.search-bar input::placeholder {
+    color: var(--text-muted);
+}
+
+/* Категории */
+.categories {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 15px;
+    scrollbar-width: none;
+    transition: opacity 0.3s, max-height 0.3s;
+}
+.categories::-webkit-scrollbar { display: none; }
+
+.cat-btn {
+    padding: 8px 18px;
+    border: none;
+    border-radius: 50px; /* Полностью круглые края */
+    color: var(--text-main);
+    white-space: nowrap;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.cat-btn.active {
+    background-color: var(--accent-orange);
+    color: white;
+}
+
+.cat-btn.glass {
+    color: var(--text-muted);
+}
+
+/* Карточки */
+.card {
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.card-img-wrapper {
+    position: relative;
+    width: 100%;
+    height: 180px;
+}
+
+.card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 16px 16px 0 0;
+    opacity: 0.8;
+}
+
+.card-info {
+    padding: 15px;
+}
+
+.card-info h2 {
+    color: var(--accent-orange);
+    font-size: 20px;
+    margin-bottom: 4px;
+}
+
+.desc {
+    color: var(--text-main);
+    font-size: 15px;
+    margin-bottom: 12px;
+}
+
+.tags {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.tag {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+.tag.glass {
+    padding: 4px 10px;
+    border-radius: 8px;
+}
+
+/* Выпадающее меню внутри карточки */
+.card-expand-toggle {
+    color: var(--accent-orange);
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 15px;
+    user-select: none;
+}
+
+.card-actions {
+    display: none; /* Скрыто по умолчанию */
+    gap: 10px;
+    margin-bottom: 15px;
+    animation: fadeIn 0.2s ease;
+}
+
+.outline-btn {
+    flex: 1;
+    padding: 10px 0;
+    background: transparent;
+    border: 1px solid var(--accent-orange);
+    color: var(--accent-orange);
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: center;
+}
+
+.download-btn {
+    width: 100%;
+    padding: 14px;
+    background-color: var(--accent-orange);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+/* Профиль */
+.page-title {
+    margin: 10px 0 20px;
+    font-size: 22px;
+}
+
+.profile-card, .stats-card, .theme-card {
+    padding: 20px;
+    margin-bottom: 15px;
+}
+
+.profile-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.avatar {
+    width: 60px;
+    height: 60px;
+    background-color: #333;
+    border: 1px solid var(--accent-orange);
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 24px;
+    color: var(--accent-orange);
+}
+
+.user-details h3 { font-size: 18px; margin-bottom: 4px; }
+.user-details p { color: var(--text-muted); font-size: 14px; }
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    font-size: 15px;
+}
+.stat-row:last-child { margin-bottom: 0; }
+.online-text { color: #4cd964; }
+
+.theme-card h3 { margin-bottom: 20px; color: var(--accent-orange); font-size: 16px;}
+.theme-option {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+    cursor: pointer;
+    font-size: 15px;
+}
+.theme-option input { display: none; }
+.radio-custom {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--text-muted);
+    border-radius: 50%;
+    position: relative;
+}
+.theme-option input:checked + span + .radio-custom {
+    border-color: var(--accent-orange);
+}
+.theme-option input:checked + span + .radio-custom::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 10px; height: 10px;
+    background: var(--accent-orange);
+    border-radius: 50%;
+}
+
+/* Нижняя навигация */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    padding: 12px 0 20px;
+    border-radius: 20px 20px 0 0;
+    border-bottom: none;
+    z-index: 100;
+}
+
+.nav-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.nav-btn.active {
+    color: var(--accent-orange);
+}
+
+/* Модальные окна (Всплывающие) */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.modal-box {
+    background: var(--modal-bg);
+    width: 90%;
+    max-width: 380px;
+    border-radius: 24px;
+    padding: 24px;
+    transform: translateY(20px);
+    transition: transform 0.3s ease;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.modal-overlay.active .modal-box {
+    transform: translateY(0);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.modal-header h3 {
+    color: var(--accent-orange);
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.modal-close-icon {
+    background: rgba(255, 255, 255, 0.08);
+    border: none;
+    color: var(--text-muted);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.modal-body {
+    color: #d1d1d1;
+    font-size: 15px;
+    line-height: 1.6;
+    margin-bottom: 24px;
+    max-height: 50vh;
+    overflow-y: auto;
+}
+
+.modal-body ul {
+    list-style: none;
+    margin-bottom: 12px;
+    padding-left: 0;
+}
+
+.modal-body ul li {
+    position: relative;
+    padding-left: 15px;
+}
+
+.modal-body ul li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: #d1d1d1;
+}
+
+.modal-body p {
+    margin-bottom: 6px;
+    color: #ffffff;
+}
+
+.modal-close-btn {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    padding: 14px;
+    border-radius: 30px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+/* Темы для фона */
+body.theme-rain { background: linear-gradient(to bottom, #111a22, #080808); }
+body.theme-snow { background: linear-gradient(to bottom, #1e252c, #080808); }
+body.theme-sun { background: linear-gradient(to bottom, #2b1f15, #080808); }
+/* Кнопка удаления (скрыта по умолчанию, появляется при админ-моде) */
+.delete-btn {
+    display: none;
+    width: 100%;
+    padding: 10px;
+    background-color: transparent;
+    border: 1px solid #ff3b30;
+    color: #ff3b30;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 14px;
+    margin-top: 10px;
+    cursor: pointer;
+    text-align: center;
+}
+
+body.admin-mode .delete-btn {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+body.admin-mode .avatar {
+    border-color: #ff3b30;
+    box-shadow: 0 0 15px rgba(255, 59, 48, 0.4);
+}
+/* --- НОВЫЙ ДИЗАЙН ПРОФИЛЯ --- */
+.profile-block {
+    padding: 18px;
+    margin-bottom: 15px;
+}
+
+.block-title {
+    color: var(--accent-orange);
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.profile-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 0;
+    margin: 0;
+}
+
+.user-details h3 {
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.muted-text {
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+}
+
+.border-bottom {
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.stat-label {
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.stat-value {
+    font-weight: bold;
+}
+
+.online-text {
+    color: #32d74b; /* Ярко-зеленый как на фото */
+    font-weight: 500;
+}
+
+.theme-option {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    cursor: pointer;
+    font-size: 16px;
+    margin: 0;
+}
+
+.theme-label-inner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.theme-icon {
+    font-size: 18px;
+}
+
+.divider {
+    height: 1px;
+    background: var(--glass-border);
+    margin: 0;
+}
+
+/* --- АНИМАЦИЯ ЧАСТИЦ (СНЕГ И ДОЖДЬ) --- */
+#particles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none; /* Чтобы не мешали кликать */
+    z-index: -1; /* На заднем фоне */
+    overflow: hidden;
+}
+
+.snowflake {
+    position: absolute;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+    animation: snowFall linear infinite;
+    top: -10px;
+}
+
+.raindrop {
+    position: absolute;
+    width: 1px;
+    height: 25px; /* Длинные капли */
+    background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0.5));
+    animation: rainFall linear infinite;
+    top: -30px;
+}
+
+@keyframes snowFall {
+    0% { transform: translateY(-10px) translateX(0); opacity: 0; }
+    10% { opacity: 0.8; }
+    90% { opacity: 0.8; }
+    100% { transform: translateY(105vh) translateX(25px); opacity: 0; }
+}
+@keyframes rainFall {
+    0% { transform: translateY(-30px); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(105vh); opacity: 0; }
+}
+
+/* Солнечные блики (градиент) */
+body.theme-sun { 
+    background: linear-gradient(135deg, #1c1005, #080808, #3a1a02, #080808); 
+    background-size: 400% 400%;
+    animation: sunGlare 15s ease infinite;
+}
+
+@keyframes sunGlare {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.modal-body p {
+    white-space: pre-wrap; /* Заставляет HTML уважать переносы строк из бота */
+    word-break: break-word;
+    line-height: 1.5;
+}
+/* --- 3. СКЕЛЕТОН ЗАГРУЗКИ --- */
+.skeleton-card {
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 16px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+}
+.skeleton-img {
+    height: 180px;
+    border-radius: 12px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-load 1.5s infinite;
+    margin-bottom: 15px;
+}
+.skeleton-line {
+    height: 16px;
+    border-radius: 8px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-load 1.5s infinite;
+    margin-bottom: 10px;
+}
+.skeleton-line.short { width: 60%; }
+
+@keyframes skeleton-load {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
