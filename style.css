@@ -114,7 +114,7 @@ body.theme-gif {
     justify-content: center;
     color: var(--text-muted);
     flex-shrink: 0;
-    border-radius: 14px;
+    border-radius: 50px; /* Было 14px */
     cursor: pointer;
 }
 
@@ -123,8 +123,8 @@ body.theme-gif {
     align-items: center;
     padding: 0 15px;
     flex-grow: 1;
-    border-radius: 14px;
-    background: rgba(40, 40, 40, 0.6); /* Более выделенный фон */
+    border-radius: 50px; /* Было 14px */
+    background: rgba(40, 40, 40, 0.6);
     border: 1px solid rgba(255, 255, 255, 0.08);
 }
 .search-bar input {
@@ -176,6 +176,9 @@ body.theme-gif {
 .card {
     margin-bottom: 20px;
     overflow: hidden;
+    border-radius: 20px; /* Добавляем общее скругление карточке */
+    background: var(--glass-bg); /* Чтобы низ не был прозрачным */
+    border: 1px solid var(--glass-border);
 }
 
 .card-img-wrapper {
@@ -188,7 +191,7 @@ body.theme-gif {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: 16px 16px 0 0;
+    border-radius: 20px 20px 0 0; /* Скругляем только верхние углы картинки */
     opacity: 0.8;
 }
 
@@ -532,6 +535,8 @@ body.admin-mode .avatar {
 .profile-block {
     padding: 18px;
     margin-bottom: 15px;
+    border-radius: 24px; /* <--- ДОБАВЛЯЕМ ЭТУ СТРОКУ */
+    border: 1px solid var(--glass-border); /* Чтобы была видна граница блока */
 }
 
 .block-title {
