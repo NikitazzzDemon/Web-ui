@@ -6,7 +6,7 @@ const SUPABASE_URL = "https://epayzwjglacworkdbkmh.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwYXl6d2pnbGFjd29ya2Ria21oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MTA0NjIsImV4cCI6MjA5MDA4NjQ2Mn0.22nlKvyVL_4nuECtFtiP3TZ3suBeFNWxMQhkvxKfmmo3";
 const SB_HEADERS = { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` };
 
-let botUsername = "";
+const botUsername = "Demons_moderation_bot";
 let modalDataStorage = {};
 
 // --- Данные пользователя ---
@@ -192,16 +192,6 @@ async function fetchCheats() {
         </div>
     `;
     try {
-        // Получаем username бота из Supabase (храним в отдельной таблице) или хардкодим
-        // Для простоты — получаем через отдельный endpoint если он есть, иначе из мета
-        const botRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_bot_username`, { headers: SB_HEADERS });
-        if (botRes.ok) {
-            const botData = await botRes.json();
-            botUsername = botData || "DemonscheatsBot";
-        } else {
-            botUsername = "DemonsfileBot"; // fallback — замени на своего бота
-        }
-
         const res = await fetch(`${SUPABASE_URL}/rest/v1/cheats?select=*&order=id.desc`, { headers: SB_HEADERS });
         const cheats = await res.json();
         
@@ -212,8 +202,9 @@ async function fetchCheats() {
             container.innerHTML = '<div style="text-align:center; color:gray;">База пуста. Добавьте файлы через бота.</div>';
             return;
         }
-
-        let allUniqueTags = new Set(); // Сюда собираем все теги
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/cheats?select=*&order=id.desc`, { headers: SB_HEADERS });
+        const cheats = await res.json();
+        console.log("Cheats response:", cheats);/ Сюда собираем все теги
 
         cheats.forEach(cheat => {
             modalDataStorage[cheat.id] = {
