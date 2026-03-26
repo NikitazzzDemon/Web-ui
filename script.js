@@ -2,8 +2,12 @@ const tg = window.Telegram.WebApp;
 tg.expand();
 tg.setHeaderColor('#080808');
 
+const SUPABASE_URL = "https://epayzwjglacworkdbkmh.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwYXl6d2pnbGFjd29ya2Ria21oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MTA0NjIsImV4cCI6MjA5MDA4NjQ2Mn0.22nlKvyVL_4nuECtFtiP3TZ3suBeFNWxMQhkvxKfmmo3";
+const SB_HEADERS = { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` };
+
 let botUsername = "";
-let modalDataStorage = {}; 
+let modalDataStorage = {};
 
 // --- Данные пользователя ---
 const user = tg.initDataUnsafe?.user;
@@ -26,13 +30,13 @@ function updateProfileStats() {
 
     console.log("Запрос статистики для:", currentUser.id);
 
-    fetch(`/api/user_stats?user_id=${currentUser.id}&t=${Date.now()}`)
+    fetch(`${SUPABASE_URL}/rest/v1/users?user_id=eq.${currentUser.id}&select=downloads`, { headers: SB_HEADERS })
         .then(res => res.json())
         .then(data => {
             console.log("Получены данные:", data);
             const countElement = document.getElementById('downloads-count');
             if (countElement) {
-                countElement.innerText = data.downloads || 0;
+                countElement.innerText = (data[0] && data[0].downloads) ? data[0].downloads : 0;
             }
         })
         .catch(err => console.error("Ошибка при получении статистики:", err));
@@ -188,11 +192,17 @@ async function fetchCheats() {
         </div>
     `;
     try {
-        const botRes = await fetch('/api/bot_info');
-        const botData = await botRes.json();
-        botUsername = botData.username;
+        // Получаем username бота из Supabase (храним в отдельной таблице) или хардкодим
+        // Для простоты — получаем через отдельный endpoint если он есть, иначе из мета
+        const botRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_bot_username`, { headers: SB_HEADERS });
+        if (botRes.ok) {
+            const botData = await botRes.json();
+            botUsername = botData || "DemonscheatsBot";
+        } else {
+            botUsername = "DemonsfileBot"; // fallback — замени на своего бота
+        }
 
-        const res = await fetch('/api/cheats');
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/cheats?select=*&order=id.desc`, { headers: SB_HEADERS });
         const cheats = await res.json();
         
         const container = document.getElementById('cards-container');
@@ -296,14 +306,12 @@ window.downloadCheat = function(id) {
     tg.openTelegramLink(link);
 };
 
-// Удаление
-window.deleteCheat = async function(id) {
+    window.deleteCheat = async function(id) {
     tg.showConfirm('Точно удалить этот чит?', async (confirmed) => {
         if (confirmed) {
-            await fetch('/api/delete', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: id })
+            await fetch(`${SUPABASE_URL}/rest/v1/cheats?id=eq.${id}`, {
+                method: 'DELETE',
+                headers: SB_HEADERS
             });
             fetchCheats();
         }
