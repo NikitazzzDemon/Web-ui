@@ -666,32 +666,46 @@ body.admin-mode .avatar {
 
 /* Солнечные блики (градиент) */
 body.theme-sun {
-    background: #080808; /* Глубокий черный фон */
-    background-image: 
-        radial-gradient(circle at 20% 30%, rgba(255, 191, 0, 0.08) 0%, transparent 50%),
-        radial-gradient(circle at 80% 70%, rgba(255, 100, 0, 0.05) 0%, transparent 50%);
-    background-attachment: fixed;
-    position: relative;
-    overflow-x: hidden;
+    background: #050505; /* Глубокий темный фон */
 }
 
-body.theme-sun::before {
+/* Используем контейнер particles для создания 8 пятен */
+body.theme-sun #particles::before {
     content: "";
     position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: 
-        radial-gradient(circle at 10% 10%, rgba(255, 215, 0, 0.1) 0%, transparent 40%),
-        radial-gradient(circle at 90% 90%, rgba(255, 140, 0, 0.07) 0%, transparent 40%);
-    z-index: -2;
-    animation: sunSpots 10s ease-in-out infinite alternate;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    top: -150px; /* Прячем основной элемент за экран */
+    left: -150px;
+    /* Генерируем 8 пятен в разных частях экрана через тени */
+    box-shadow: 
+        20vw 20vh 150px 60px rgba(255, 200, 0, 0.15),
+        80vw 15vh 130px 50px rgba(255, 140, 0, 0.12),
+        50vw 50vh 180px 70px rgba(255, 180, 0, 0.1),
+        15vw 80vh 140px 55px rgba(255, 100, 0, 0.13),
+        85vw 85vh 160px 65px rgba(255, 220, 0, 0.11),
+        40vw 10vh 120px 45px rgba(255, 160, 0, 0.09),
+        70vw 60vh 140px 50px rgba(255, 130, 0, 0.12),
+        10vw 45vh 150px 60px rgba(255, 190, 0, 0.1);
+    filter: blur(40px);
+    animation: sunFlicker 8s infinite ease-in-out;
 }
 
-@keyframes sunSpots {
-    0% { opacity: 0.2; transform: scale(1) translate(0, 0); }
-    50% { opacity: 0.8; transform: scale(1.1) translate(2%, 2%); }
-    100% { opacity: 0.4; transform: scale(0.9) translate(-1%, 1%); }
+@keyframes sunFlicker {
+    0%, 100% { 
+        opacity: 0.3; 
+        transform: scale(1) translate(0, 0); 
+    }
+    33% { 
+        opacity: 0.8; 
+        transform: scale(1.1) translate(20px, -30px); 
+    }
+    66% { 
+        opacity: 0.5; 
+        transform: scale(0.9) translate(-25px, 15px); 
+    }
 }
-
 .modal-body p {
     white-space: pre-wrap; /* Заставляет HTML уважать переносы строк из бота */
     word-break: break-word;
