@@ -1,11 +1,11 @@
 :root {
     --bg-color: #080808;
-    --accent-orange: #ff6a00;
-    --accent-orange-hover: #e65c00;
+    --accent-orange: #a855f7;
+    --accent-orange-hover: #9333ea;
     --text-main: #ffffff;
     --text-muted: #a0a0a0;
     --glass-bg: rgba(25, 25, 25, 0.6);
-    --glass-border: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(168, 85, 247, 0.12);
     --modal-bg: #1c1c1e;
 }
 
@@ -472,9 +472,9 @@ body.theme-rain, body.theme-snow, body.theme-sun {
 }
 
 /* Темы для фона */
-body.theme-rain { background: linear-gradient(to bottom, #111a22, #080808); }
-body.theme-snow { background: linear-gradient(to bottom, #1e252c, #080808); }
-body.theme-sun { background: linear-gradient(to bottom, #2b1f15, #080808); }
+body.theme-rain { background: linear-gradient(to bottom, #0e0a1a, #080808); }
+body.theme-snow { background: linear-gradient(to bottom, #1a1525, #080808); }
+body.theme-sun { background: linear-gradient(to bottom, #1a0a2e, #080808); }
 /* Кнопка удаления (скрыта по умолчанию, появляется при админ-моде) */
 .delete-btn {
     display: none;
@@ -632,7 +632,7 @@ body.admin-mode .avatar {
 
 /* Солнечные блики (градиент) */
 body.theme-sun { 
-    background: linear-gradient(135deg, #1c1005, #080808, #3a1a02, #080808); 
+    background: linear-gradient(135deg, #0d0520, #080808, #1a0a3a, #080808); 
     background-size: 400% 400%;
     animation: sunGlare 15s ease infinite;
 }
