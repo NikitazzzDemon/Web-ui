@@ -194,17 +194,17 @@ async function fetchCheats() {
     try {
         const res = await fetch(`${SUPABASE_URL}/rest/v1/cheats?select=*&order=id.desc`, { headers: SB_HEADERS });
         const cheats = await res.json();
+        console.log("Cheats response:", cheats);
         
         const container = document.getElementById('cards-container');
-        container.innerHTML = ''; 
+        container.innerHTML = '';
 
-        if (cheats.length === 0) {
+        if (!Array.isArray(cheats) || cheats.length === 0) {
             container.innerHTML = '<div style="text-align:center; color:gray;">База пуста. Добавьте файлы через бота.</div>';
             return;
         }
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/cheats?select=*&order=id.desc`, { headers: SB_HEADERS });
-        const cheats = await res.json();
-        console.log("Cheats response:", cheats);/ Сюда собираем все теги
+
+        let allUniqueTags = new Set();
 
         cheats.forEach(cheat => {
             modalDataStorage[cheat.id] = {
