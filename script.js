@@ -355,3 +355,6 @@ document.getElementById('search-input').addEventListener('input', (e) => {
 
 tg.ready();
 fetchCheats();
+// Запускаем дождь по умолчанию
+document.body.classList.add('theme-rain');
+createParticles('rain');
