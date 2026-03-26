@@ -1,11 +1,16 @@
 :root {
     --bg-color: #080808;
-    --accent-orange: #a855f7;
-    --accent-orange-hover: #9333ea;
+    /* Ярко-бардовые цвета */
+    --accent-orange: #C70039; 
+    --accent-orange-hover: #900C3F;
     --text-main: #ffffff;
     --text-muted: #a0a0a0;
+    
+    /* Динамические переменные для стекла (будем менять их в гиф-темах) */
     --glass-bg: rgba(25, 25, 25, 0.6);
-    --glass-border: rgba(168, 85, 247, 0.12);
+    --glass-border: rgba(199, 0, 57, 0.3); /* Бардовая граница */
+    --glass-blur: 12px;
+    
     --modal-bg: #1c1c1e;
 }
 
@@ -29,17 +34,22 @@ body.theme-rain, body.theme-snow, body.theme-sun {
     background-attachment: fixed !important; 
 }
 
+body.theme-gif {
+    --glass-bg: rgba(25, 25, 25, 0.2); 
+    --glass-blur: 4px;
+    background-image: var(--gif-bg);
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+}
+
 .glass {
     background: var(--glass-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--glass-border);
-    border-radius: 16px;
-    
-    /* Включаем аппаратное ускорение для устранения полос/артефактов */
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
-    will-change: transform;
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    /* ФИКС: убирает визуальные баги и полосы от частиц на фоне */
+    transform: translateZ(0); 
+    backface-visibility: hidden;
 }
 
 .raindrop, .snowflake {
@@ -339,31 +349,49 @@ body.theme-rain, body.theme-snow, body.theme-sun {
 /* Нижняя навигация */
 .bottom-nav {
     position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
-    justify-content: space-around;
-    padding: 12px 0 20px;
-    border-radius: 20px 20px 0 0;
-    border-bottom: none;
-    z-index: 100;
+    padding: 5px;
+    border-radius: 30px;
+    width: calc(100% - 40px);
+    max-width: 400px;
+    z-index: 1000;
+    /* Стекло уже применится от класса .glass */
+}
+
+.nav-indicator {
+    position: absolute;
+    top: 5px;
+    bottom: 5px;
+    /* Ширина и отступ будут задаваться через JS */
+    background-color: var(--accent-orange);
+    border-radius: 25px;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 0;
 }
 
 .nav-btn {
-    background: none;
+    flex: 1;
+    position: relative;
+    z-index: 1;
+    background: transparent;
     border: none;
     color: var(--text-muted);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    font-size: 12px;
+    padding: 12px 0;
+    font-size: 15px;
+    font-weight: 600;
     cursor: pointer;
+    transition: color 0.3s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
 }
 
 .nav-btn.active {
-    color: var(--accent-orange);
+    color: #fff;
 }
 
 /* Модальные окна (Всплывающие) */

@@ -78,6 +78,16 @@ document.getElementById('user-avatar').addEventListener('click', () => {
 const navButtons = document.querySelectorAll('.nav-btn');
 const views = document.querySelectorAll('.view');
 
+// НОВАЯ ФУНКЦИЯ: Движение индикатора
+function updateNavIndicator() {
+    const activeBtn = document.querySelector('.bottom-nav .nav-btn.active');
+    const indicator = document.querySelector('.nav-indicator');
+    if (activeBtn && indicator) {
+        indicator.style.width = `${activeBtn.offsetWidth}px`;
+        indicator.style.left = `${activeBtn.offsetLeft}px`;
+    }
+}
+
 function switchView(targetId) {
     navButtons.forEach(b => b.classList.remove('active'));
     views.forEach(v => v.classList.remove('active'));
@@ -86,12 +96,19 @@ function switchView(targetId) {
     
     // Подсвечиваем кнопку в нижней панели, если она там есть
     const bottomBtn = document.querySelector(`.nav-btn[data-target="${targetId}"]`);
-    if(bottomBtn) bottomBtn.classList.add('active');
+    if(bottomBtn) {
+        bottomBtn.classList.add('active');
+        updateNavIndicator(); // Двигаем полоску при клике
+    }
 }
 
 navButtons.forEach(btn => {
     btn.addEventListener('click', () => switchView(btn.getAttribute('data-target')));
 });
+
+// Вызываем при загрузке страницы и при изменении размера экрана
+window.addEventListener('DOMContentLoaded', updateNavIndicator);
+window.addEventListener('resize', updateNavIndicator);
 
 // КЛИК ПО ИКОНКЕ ПРОФИЛЯ СЛЕВА ВВЕРХУ (Требование 1)
 document.getElementById('top-profile-btn').addEventListener('click', () => {
@@ -138,9 +155,23 @@ function createParticles(theme) {
 document.querySelectorAll('input[name="theme"]').forEach(option => {
     option.addEventListener('change', (e) => {
         const theme = e.target.value;
-        document.body.className = ''; // Сброс классов
-        if (theme !== 'none') document.body.classList.add(`theme-${theme}`);
-        createParticles(theme);
+        
+        // Сбрасываем старые классы и фон
+        document.body.className = ''; 
+        document.body.style.removeProperty('--gif-bg'); 
+        
+        // Проверяем, выбрал ли пользователь GIF-тему
+        if (theme.endsWith('.gif')) {
+            // Включаем настройки для гифки (прозрачность, меньше блюра)
+            document.body.classList.add('theme-gif');
+            document.body.style.setProperty('--gif-bg', `url('${theme}')`);
+            // Убираем снег/дождь
+            createParticles('none');
+        } else {
+            // Если это обычная тема (дождь, снег, солнце)
+            if (theme !== 'none') document.body.classList.add(`theme-${theme}`);
+            createParticles(theme);
+        }
     });
 });
 
