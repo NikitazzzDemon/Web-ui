@@ -176,7 +176,7 @@ document.querySelectorAll('input[name="theme"]').forEach(option => {
         } else if (theme === 'custom') {
             document.body.classList.add('theme-custom');
             // Путь к картинке на гитхабе/cloudflare (можно заменить на реальный)
-            const bgUrl = 'https://i.ibb.co/7x9qnMJH/upscalemedia-transformed.jpg'; 
+            const bgUrl = 'https://i.ibb.co/DPTpy0pr/98b1d79dea3f46975f495fd3c191b69b.jpg'; 
             document.body.style.setProperty('--custom-bg', `url('${bgUrl}')`);
             createParticles('none');
         } else {
