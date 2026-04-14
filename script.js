@@ -159,13 +159,18 @@ document.querySelectorAll('input[name="theme"]').forEach(option => {
         // Сбрасываем старые классы и фон
         document.body.className = ''; 
         document.body.style.removeProperty('--gif-bg'); 
+        document.body.style.removeProperty('--custom-bg');
         
-        // Проверяем, выбрал ли пользователь GIF-тему
+        // Проверяем, выбрал ли пользователь GIF-тему или кастомную
         if (theme.endsWith('.gif')) {
-            // Включаем настройки для гифки (прозрачность, меньше блюра)
             document.body.classList.add('theme-gif');
             document.body.style.setProperty('--gif-bg', `url('${theme}')`);
-            // Убираем снег/дождь
+            createParticles('none');
+        } else if (theme === 'custom') {
+            document.body.classList.add('theme-custom');
+            // Путь к картинке на гитхабе/cloudflare (можно заменить на реальный)
+            const bgUrl = 'https://raw.githubusercontent.com/nikit/my_bot_project/main/web/background.jpg'; 
+            document.body.style.setProperty('--custom-bg', `url('${bgUrl}')`);
             createParticles('none');
         } else {
             // Если это обычная тема (дождь, снег, солнце)
@@ -175,6 +180,25 @@ document.querySelectorAll('input[name="theme"]').forEach(option => {
     });
 });
 
+// --- Скачивание с анимацией ---
+window.downloadCheat = function(id) {
+    tg.HapticFeedback.impactOccurred('light');
+    
+    // Показываем анимацию загрузки
+    const loader = document.getElementById('loading-overlay');
+    loader.classList.add('active');
+    
+    // Имитируем задержку для красоты анимации (например, 2 секунды)
+    setTimeout(() => {
+        const link = `https://t.me/${botUsername}?start=dl_${id}`;
+        tg.openTelegramLink(link);
+        
+        // Скрываем загрузку через некоторое время
+        setTimeout(() => {
+            loader.classList.remove('active');
+        }, 500);
+    }, 1500);
+};
 
 // --- Фильтр ---
 document.getElementById('filter-toggle').addEventListener('click', () => {
@@ -210,26 +234,15 @@ window.filterCards = function(selectedTag) {
 }
 
 
-// --- ДИНАМИЧЕСКАЯ ЗАГРУЗКА И ТЕГИ (Требование 2) ---
+// --- ДИНАМИЧЕСКАЯ ЗАГРУЗКА И ТЕГИ ---
 async function fetchCheats() {
     const container = document.getElementById('cards-container');
-    // Вставляем скелетон загрузки
     container.innerHTML = `
-        <div class="skeleton-card">
-            <div class="skeleton-img"></div>
-            <div class="skeleton-line"></div>
-            <div class="skeleton-line short"></div>
-        </div>
-        <div class="skeleton-card">
-            <div class="skeleton-img"></div>
-            <div class="skeleton-line"></div>
-            <div class="skeleton-line short"></div>
-        </div>
+        <div style="text-align: center; color: var(--text-muted); padding: 20px;">Загрузка файлов...</div>
     `;
     try {
         const res = await fetch(`${SUPABASE_URL}/rest/v1/cheats?select=*&order=id.desc`, { headers: SB_HEADERS });
         const cheats = await res.json();
-        console.log("Cheats response:", cheats);
         
         const container = document.getElementById('cards-container');
         container.innerHTML = '';
@@ -247,16 +260,15 @@ async function fetchCheats() {
                 details: cheat.details
             };
 
-            // Собираем теги для кнопок и карточки
             const rawTags = cheat.tags.split(',').map(t => t.trim()).filter(t => t !== '');
             rawTags.forEach(t => allUniqueTags.add(t));
             
             const tagsHtml = rawTags.map(t => `<span class="tag glass">${t}</span>`).join('');
-            const dataTagsAttr = rawTags.join(','); // Для фильтрации
+            const dataTagsAttr = rawTags.join(',');
 
             const card = document.createElement('div');
             card.className = 'card glass';
-            card.setAttribute('data-tags', dataTagsAttr); // Добавляем атрибут
+            card.setAttribute('data-tags', dataTagsAttr);
             card.innerHTML = `
                 <div class="card-img-wrapper">
                     <img src="${cheat.image_url}" alt="Preview" class="card-img" onerror="this.src='https://i.imgur.com/3q1Z3aO.jpeg'">
@@ -281,7 +293,7 @@ async function fetchCheats() {
                         Скачать
                     </button>
                     
-                    <button class="delete-btn" onclick="deleteCheat(${cheat.id})">Удалить пост</button>
+                    <button class="delete-btn" style="margin-top: 15px; background: rgba(255,0,0,0.1); color: #ff4444; border: none; padding: 10px; border-radius: 10px; width: 100%; font-size: 13px; display: none;" onclick="deleteCheat(${cheat.id})">Удалить пост (Админ)</button>
                 </div>
             `;
             container.appendChild(card);
@@ -324,13 +336,6 @@ window.openModal = function(title, id, type) {
 const closeModal = () => modalOverlay.classList.remove('active');
 document.querySelectorAll('.modal-close-icon, .modal-close-btn').forEach(b => b.addEventListener('click', closeModal));
 modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
-
-// Скачивание
-window.downloadCheat = function(id) {
-    tg.HapticFeedback.impactOccurred('light');
-    const link = `https://t.me/${botUsername}?start=dl_${id}`;
-    tg.openTelegramLink(link);
-};
 
     window.deleteCheat = async function(id) {
     tg.showConfirm('Точно удалить этот чит?', async (confirmed) => {

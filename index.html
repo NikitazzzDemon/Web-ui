@@ -11,6 +11,13 @@
     <!-- Контейнер для анимации снега/дождя -->
     <div id="particles"></div>
 
+    <!-- Декоративные фоновые сферы для Glassmorphism -->
+    <div class="bg-spheres">
+        <div class="sphere pink"></div>
+        <div class="sphere purple"></div>
+        <div class="sphere blue"></div>
+    </div>
+
     <div id="app">
         <header class="header">
             <div class="logo">
@@ -92,9 +99,11 @@
                     <div class="theme-label-inner"><span class="theme-icon">☀️</span> Солнечные блики</div>
                     <input type="radio" name="theme" value="sun"><span class="radio-custom"></span>
                 </label>
-
-
-
+                <div class="divider"></div>
+                <label class="theme-option">
+                    <div class="theme-label-inner"><span class="theme-icon">🖼</span> Пользовательский фон</div>
+                    <input type="radio" name="theme" value="custom"><span class="radio-custom"></span>
+                </label>
             </div>
         </main>
 
@@ -110,6 +119,14 @@
                 <span>Профиль</span>
             </button>
         </nav>
+    </div>
+
+    <!-- Оверлей загрузки -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loader">
+            <img src="https://i.gifer.com/ZZ5H.gif" alt="Loading..." class="loader-gif">
+            <p>Подготовка файла...</p>
+        </div>
     </div>
 
     <div id="modal-overlay" class="modal-overlay">
