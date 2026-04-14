@@ -7,7 +7,9 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const SB_HEADERS = {
     "apikey": SUPABASE_ANON_KEY,
     "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
-    "Accept-Profile": "public"
+    "Accept-Profile": "public",
+    "Content-Type": "application/json",
+    "Prefer": "return=minimal"
 };
 
 const botUsername = "Demons_moderation_bot";
@@ -206,6 +208,40 @@ document.querySelectorAll('input[name="theme"]').forEach(option => {
             createParticles('none');
         } else if (theme === 'none') {
             createParticles('none');
+        } else if (theme === 'snow') {
+            const savedSnowBg = localStorage.getItem('snow-bg-url');
+            if (savedSnowBg) {
+                document.body.classList.add('theme-snow', 'light-bg');
+                document.body.style.setProperty('--snow-bg', `url('${savedSnowBg}')`);
+            } else {
+                document.body.classList.add('theme-snow');
+                document.body.style.setProperty('--snow-bg', 'linear-gradient(to bottom, #b0c4de, #e8e8e8)');
+                setTimeout(() => {
+                    const bgUrl = prompt('Введите URL светлой картинки для темы "Снегопад":\n(Оставьте пустым для градиента)');
+                    if (bgUrl && bgUrl.trim()) {
+                        localStorage.setItem('snow-bg-url', bgUrl.trim());
+                        document.body.style.setProperty('--snow-bg', `url('${bgUrl.trim()}')`);
+                    }
+                }, 500);
+            }
+            createParticles('snow');
+        } else if (theme === 'sun') {
+            const savedSunBg = localStorage.getItem('sun-bg-url');
+            if (savedSunBg) {
+                document.body.classList.add('theme-sun', 'light-bg');
+                document.body.style.setProperty('--sun-bg', `url('${savedSunBg}')`);
+            } else {
+                document.body.classList.add('theme-sun');
+                document.body.style.setProperty('--sun-bg', 'linear-gradient(to bottom, #ffd89b, #e8e8e8)');
+                setTimeout(() => {
+                    const bgUrl = prompt('Введите URL светлой картинки для темы "Солнечные блики":\n(Оставьте пустым для градиента)');
+                    if (bgUrl && bgUrl.trim()) {
+                        localStorage.setItem('sun-bg-url', bgUrl.trim());
+                        document.body.style.setProperty('--sun-bg', `url('${bgUrl.trim()}')`);
+                    }
+                }, 500);
+            }
+            createParticles('none');
         } else {
             // Снег, солнце и др - обычные темы
             document.body.classList.add(`theme-${theme}`);
@@ -354,6 +390,10 @@ async function fetchCheats() {
                         Скачать
                     </button>
                     
+                    <button class="subscribe-btn" onclick="toggleSubscription(${cheat.id}, '${cheat.name}')" id="sub-btn-${cheat.id}">
+                        🔔 Подписаться на обновления
+                    </button>
+                    
                     <div class="admin-actions" style="display: ${document.body.classList.contains('admin-mode') ? 'flex' : 'none'}; margin-top: 15px; gap: 10px;">
                         <button class="edit-btn" style="flex: 1; background: rgba(255, 255, 255, 0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); padding: 10px; border-radius: 12px; font-size: 13px; cursor: pointer;" onclick="editCheatFile(${cheat.id})">Сменить файл</button>
                         <button class="delete-btn" style="flex: 1; background: rgba(255,0,0,0.1); color: #ff4444; border: 1px solid rgba(255,0,0,0.2); padding: 10px; border-radius: 12px; font-size: 13px; cursor: pointer;" onclick="deleteCheat(${cheat.id})">Удалить пост</button>
@@ -366,14 +406,40 @@ async function fetchCheats() {
         // Генерируем кнопки тегов
         const catContainer = document.getElementById('categories-container');
         catContainer.innerHTML = `<button class="cat-btn active" onclick="filterCards('all')">Все</button>`;
-        
+
         allUniqueTags.forEach(tag => {
             catContainer.innerHTML += `<button class="cat-btn glass" onclick="filterCards('${tag}')">${tag}</button>`;
         });
 
+        // Загружаем подписки пользователя и обновляем кнопки
+        loadUserSubscriptions();
+
     } catch (e) {
         console.error(e);
         document.getElementById('cards-container').innerHTML = '<div style="text-align:center; color:red;">Ошибка загрузки</div>';
+    }
+}
+
+async function loadUserSubscriptions() {
+    const currentUser = window.Telegram.WebApp.initDataUnsafe?.user;
+    if (!currentUser || !currentUser.id) return;
+
+    try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/subscriptions?user_id=eq.${currentUser.id}&select=cheat_id`, { headers: SB_HEADERS });
+        const subs = await res.json();
+
+        if (Array.isArray(subs)) {
+            subs.forEach(sub => {
+                const btn = document.getElementById(`sub-btn-${sub.cheat_id}`);
+                if (btn) {
+                    btn.textContent = '🔔 Подписка оформлена';
+                    btn.style.background = 'rgba(0, 200, 83, 0.15)';
+                    btn.style.borderColor = 'rgba(0, 200, 83, 0.3)';
+                }
+            });
+        }
+    } catch (e) {
+        console.error('Ошибка загрузки подписок:', e);
     }
 }
 
@@ -418,6 +484,11 @@ window.deleteCheat = async function(id) {
             }
         }
     });
+};
+
+window.toggleSubscription = function(id, name) {
+    tg.HapticFeedback.impactOccurred('light');
+    tg.openTelegramLink(`https://t.me/${botUsername}?start=sub_${id}`);
 };
 
 // Поиск (локальный по названиям читов)

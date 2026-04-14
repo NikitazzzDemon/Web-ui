@@ -373,6 +373,28 @@ body.theme-custom {
     transform: scale(0.98);
 }
 
+.subscribe-btn {
+    width: 100%;
+    margin-top: 10px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-main);
+    border: 1px solid var(--glass-border);
+    border-radius: 14px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.3s;
+    backdrop-filter: blur(8px);
+}
+
+.subscribe-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.subscribe-btn:active {
+    transform: scale(0.98);
+}
+
 /* Профиль */
 .page-title {
     margin: 10px 0 20px;
@@ -657,8 +679,22 @@ body.theme-rain.light-bg.glass {
 }
 
 /* Темы снега и солнца */
-body.theme-snow { background: linear-gradient(to bottom, #1a1525, #080808); }
-body.theme-sun { background: linear-gradient(to bottom, #1a0a2e, #080808); }
+body.theme-snow { background: var(--snow-bg, linear-gradient(to bottom, #1a1525, #080808)); }
+body.theme-sun { background: var(--sun-bg, linear-gradient(to bottom, #1a0a2e, #080808)); }
+
+/* Для темы "Снег" с светлыми обоями - применяем темный glass-стиль (усиленный blur) */
+body.theme-snow.light-bg .glass,
+body.theme-snow.light-bg.glass {
+    background: rgba(0, 0, 0, 0.3);
+    border-color: rgba(0, 0, 0, 0.2);
+}
+
+/* Для темы "Солнечные блики" с светлыми обоями - применяем темный glass-стиль (максимальный blur) */
+body.theme-sun.light-bg .glass,
+body.theme-sun.light-bg.glass {
+    background: rgba(0, 0, 0, 0.35);
+    border-color: rgba(0, 0, 0, 0.25);
+}
 
 /* Тема пользовательского фона - обычный стиль */
 body.theme-custom {
