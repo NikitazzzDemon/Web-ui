@@ -69,6 +69,13 @@ document.getElementById('user-avatar').addEventListener('click', () => {
     if (avatarClicks === 5) {
         tg.HapticFeedback.notificationOccurred('success');
         document.body.classList.toggle('admin-mode');
+        
+        // Показываем/скрываем кнопки админа на всех карточках
+        const adminBlocks = document.querySelectorAll('.admin-actions');
+        adminBlocks.forEach(block => {
+            block.style.display = document.body.classList.contains('admin-mode') ? 'flex' : 'none';
+        });
+
         tg.showAlert(document.body.classList.contains('admin-mode') ? 'Режим модератора АКТИВИРОВАН.' : 'Режим модератора ВЫКЛЮЧЕН');
         avatarClicks = 0;
     }
@@ -180,7 +187,7 @@ document.querySelectorAll('input[name="theme"]').forEach(option => {
     });
 });
 
-// --- Скачивание с анимацией ---
+// Скачивание с анимацией
 window.downloadCheat = function(id) {
     tg.HapticFeedback.impactOccurred('light');
     
@@ -198,6 +205,13 @@ window.downloadCheat = function(id) {
             loader.classList.remove('active');
         }, 500);
     }, 1500);
+};
+
+// Админ: Смена файла
+window.editCheatFile = function(id) {
+    tg.HapticFeedback.impactOccurred('medium');
+    const link = `https://t.me/${botUsername}?start=edit_${id}`;
+    tg.openTelegramLink(link);
 };
 
 // --- Фильтр ---
@@ -270,8 +284,10 @@ async function fetchCheats() {
             card.className = 'card glass';
             card.setAttribute('data-tags', dataTagsAttr);
             card.innerHTML = `
-                <div class="card-img-wrapper">
-                    <img src="${cheat.image_url}" alt="Preview" class="card-img" onerror="this.src='https://i.imgur.com/3q1Z3aO.jpeg'">
+                <div class="card-img-wrapper loading">
+                    <img src="${cheat.image_url}" alt="Preview" class="card-img" 
+                         onload="this.classList.add('loaded'); this.parentElement.classList.remove('loading')" 
+                         onerror="this.src='https://i.imgur.com/3q1Z3aO.jpeg'; this.classList.add('loaded'); this.parentElement.classList.remove('loading')">
                 </div>
                 <div class="card-info">
                     <h2>${cheat.name}</h2>
@@ -293,7 +309,10 @@ async function fetchCheats() {
                         Скачать
                     </button>
                     
-                    <button class="delete-btn" style="margin-top: 15px; background: rgba(255,0,0,0.1); color: #ff4444; border: none; padding: 10px; border-radius: 10px; width: 100%; font-size: 13px; display: none;" onclick="deleteCheat(${cheat.id})">Удалить пост (Админ)</button>
+                    <div class="admin-actions" style="display: ${document.body.classList.contains('admin-mode') ? 'flex' : 'none'}; margin-top: 15px; gap: 10px;">
+                        <button class="edit-btn" style="flex: 1; background: rgba(255, 255, 255, 0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); padding: 10px; border-radius: 12px; font-size: 13px; cursor: pointer;" onclick="editCheatFile(${cheat.id})">Сменить файл</button>
+                        <button class="delete-btn" style="flex: 1; background: rgba(255,0,0,0.1); color: #ff4444; border: 1px solid rgba(255,0,0,0.2); padding: 10px; border-radius: 12px; font-size: 13px; cursor: pointer;" onclick="deleteCheat(${cheat.id})">Удалить пост</button>
+                    </div>
                 </div>
             `;
             container.appendChild(card);

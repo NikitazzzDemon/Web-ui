@@ -90,8 +90,7 @@ body.theme-custom {
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
-    /* Ускоряем рендер фона */
-    will-change: transform;
+    /* УБРАНО will-change: transform, так как это ломает fixed элементы внутри */
 }
 
 .glass {
@@ -105,12 +104,40 @@ body.theme-custom {
     /* Форсируем использование GPU */
     transform: translateZ(0); 
     backface-visibility: hidden;
-    will-change: transform;
+    /* УБРАНО will-change: transform, так как это может создавать новые stacking contexts */
 }
 
 /* Добавляем тень только там, где она реально нужна (например, у карточек) */
 .card.glass {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Скелетон для картинок читов */
+.card-img-wrapper.loading::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-load 1.5s infinite;
+    z-index: 1;
+}
+
+.card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0; /* Прячем пока не загрузится */
+    transition: opacity 0.3s ease;
+}
+
+.card-img.loaded {
+    opacity: 0.9;
+}
+
+@keyframes skeleton-load {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
 }
 
 .raindrop, .snowflake {
@@ -421,23 +448,23 @@ body.theme-custom {
 /* Нижняя навигация */
 .bottom-nav {
     position: fixed;
-    bottom: 25px;
+    bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
-    padding: 8px;
-    border-radius: 24px;
-    width: calc(100% - 40px);
-    max-width: 400px;
+    padding: 6px;
+    border-radius: 20px;
+    width: calc(100% - 60px);
+    max-width: 340px;
     z-index: 1000;
 }
 
 .nav-indicator {
     position: absolute;
-    top: 8px;
-    bottom: 8px;
+    top: 6px;
+    bottom: 6px;
     background: var(--accent-primary);
-    border-radius: 18px;
+    border-radius: 14px;
     transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 0;
     box-shadow: 0 4px 15px var(--accent-glow);
@@ -450,8 +477,8 @@ body.theme-custom {
     background: transparent;
     border: none;
     color: rgba(255, 255, 255, 0.5);
-    padding: 14px 0;
-    font-size: 14px;
+    padding: 10px 0;
+    font-size: 13px;
     font-weight: 700;
     cursor: pointer;
     transition: 0.3s;
@@ -459,11 +486,11 @@ body.theme-custom {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 4px;
+    gap: 2px;
 }
 
-.nav-btn svg { width: 22px; height: 22px; }
-.nav-btn span { font-size: 11px; }
+.nav-btn svg { width: 18px; height: 18px; }
+.nav-btn span { font-size: 10px; }
 
 .nav-btn.active {
     color: #fff;
@@ -617,24 +644,8 @@ body.theme-custom {
 body.theme-rain { background: linear-gradient(to bottom, #0e0a1a, #080808); }
 body.theme-snow { background: linear-gradient(to bottom, #1a1525, #080808); }
 body.theme-sun { background: linear-gradient(to bottom, #1a0a2e, #080808); }
-/* Кнопка удаления (скрыта по умолчанию, появляется при админ-моде) */
-.delete-btn {
-    display: none;
-    width: 100%;
-    padding: 10px;
-    background-color: transparent;
-    border: 1px solid #ff3b30;
-    color: #ff3b30;
-    border-radius: 12px;
-    font-weight: 600;
-    font-size: 14px;
-    margin-top: 10px;
-    cursor: pointer;
-    text-align: center;
-}
-
-body.admin-mode .delete-btn {
-    display: block;
+body.admin-mode .admin-actions {
+    display: flex !important;
     animation: fadeIn 0.3s ease;
 }
 
