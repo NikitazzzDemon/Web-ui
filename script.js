@@ -370,8 +370,10 @@ async function loadUserSubscriptions() {
     const currentUser = window.Telegram.WebApp.initDataUnsafe?.user;
     if (!currentUser || !currentUser.id) return;
 
+    const userId = String(currentUser.id);
+
     try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/subscriptions?user_id=eq.${currentUser.id}&select=cheat_id`, { headers: SB_HEADERS });
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/subscriptions?user_id=eq.${userId}&select=cheat_id`, { headers: SB_HEADERS });
         const subs = await res.json();
 
         if (Array.isArray(subs)) {
@@ -451,8 +453,9 @@ window.toggleSubscription = async function(id, name) {
     setTimeout(async () => {
         const currentUser = window.Telegram.WebApp.initDataUnsafe?.user;
         if (currentUser && currentUser.id) {
+            const userId = String(currentUser.id);
             try {
-                const res = await fetch(`${SUPABASE_URL}/rest/v1/subscriptions?cheat_id=eq.${id}&user_id=eq.${currentUser.id}&select=cheat_id`, { headers: SB_HEADERS });
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/subscriptions?cheat_id=eq.${id}&user_id=eq.${userId}&select=cheat_id`, { headers: SB_HEADERS });
                 const data = await res.json();
                 const isSubscribed = Array.isArray(data) && data.length > 0;
                 if (btn) {

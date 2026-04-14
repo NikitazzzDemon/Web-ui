@@ -873,10 +873,6 @@ body.admin-mode .avatar {
 }
 
 /* Солнечные блики (градиент) - Оптимизировано */
-body.theme-sun {
-    background: #0d0b14; 
-}
-
 body.theme-sun #particles::before {
     content: "";
     position: fixed;
@@ -884,12 +880,10 @@ body.theme-sun #particles::before {
     height: 100%;
     top: 0;
     left: 0;
-    /* Используем градиенты вместо тяжелых теней */
-    background: 
-        radial-gradient(circle at 20% 20%, rgba(255, 200, 0, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 80% 15%, rgba(255, 140, 0, 0.08) 0%, transparent 50%),
-        radial-gradient(circle at 50% 50%, rgba(255, 180, 0, 0.07) 0%, transparent 50%),
-        radial-gradient(circle at 15% 80%, rgba(255, 100, 0, 0.09) 0%, transparent 50%);
+    background:
+        radial-gradient(circle at 20% 20%, rgba(255, 200, 0, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 15%, rgba(255, 140, 0, 0.06) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(255, 180, 0, 0.05) 0%, transparent 50%);
     pointer-events: none;
     z-index: -1;
     animation: sunFlicker 10s infinite ease-in-out;
@@ -897,8 +891,8 @@ body.theme-sun #particles::before {
 }
 
 @keyframes sunFlicker {
-    0%, 100% { opacity: 0.4; }
-    50% { opacity: 0.7; }
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.5; }
 }
 .modal-body p {
     white-space: pre-wrap; /* Заставляет HTML уважать переносы строк из бота */
