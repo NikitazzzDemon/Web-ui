@@ -167,25 +167,69 @@ document.querySelectorAll('input[name="theme"]').forEach(option => {
         document.body.className = ''; 
         document.body.style.removeProperty('--gif-bg'); 
         document.body.style.removeProperty('--custom-bg');
+        document.body.style.removeProperty('--rain-bg');
+        document.body.classList.remove('light-bg'); // Сбрасываем режим для светлых обоев
         
-        // Проверяем, выбрал ли пользователь GIF-тему или кастомную
-        if (theme.endsWith('.gif')) {
+        if (theme === 'custom') {
+            // Пользовательский фон - обычные светлые кнопки
+            document.body.classList.add('theme-custom');
+            const bgUrl = localStorage.getItem('custom-bg-url') || 'https://i.ibb.co/sdtYVVQy/2c6b0208a4ca4a574f8f0a88ab7fa050.jpg'; 
+            document.body.style.setProperty('--custom-bg', `url('${bgUrl}')`);
+            createParticles('none');
+        } else if (theme === 'rain') {
+            // Дождь - можно использовать светлый фон с темными кнопками
+            const savedRainBg = localStorage.getItem('rain-bg-url');
+            if (savedRainBg) {
+                document.body.classList.add('theme-rain', 'light-bg');
+                document.body.style.setProperty('--rain-bg', `url('${savedRainBg}')`);
+            } else {
+                // Если нет сохраненного фона, используем градиент и показываем запрос
+                document.body.classList.add('theme-rain');
+                document.body.style.setProperty('--rain-bg', 'linear-gradient(to bottom, #87CEEB, #E0E5EC)');
+                // Запрашиваем у пользователя ссылку на картинку
+                setTimeout(() => {
+                    const bgUrl = prompt('Введите URL светлой картинки для темы "Дождь":\n(Оставьте пустым для градиента)');
+                    if (bgUrl && bgUrl.trim()) {
+                        localStorage.setItem('rain-bg-url', bgUrl.trim());
+                        document.body.style.setProperty('--rain-bg', `url('${bgUrl.trim()}')`);
+                    }
+                }, 500);
+            }
+            createParticles('rain');
+        } else if (theme === 'rain-dark') {
+            // Дождь с темным фоном - обычные кнопки
+            document.body.classList.add('theme-rain');
+            createParticles('rain');
+        } else if (theme.endsWith('.gif')) {
             document.body.classList.add('theme-gif');
             document.body.style.setProperty('--gif-bg', `url('${theme}')`);
             createParticles('none');
-        } else if (theme === 'custom') {
-            document.body.classList.add('theme-custom');
-            // Путь к картинке на гитхабе/cloudflare (можно заменить на реальный)
-            const bgUrl = 'https://i.ibb.co/sdtYVVQy/2c6b0208a4ca4a574f8f0a88ab7fa050.jpg'; 
-            document.body.style.setProperty('--custom-bg', `url('${bgUrl}')`);
+        } else if (theme === 'none') {
             createParticles('none');
         } else {
-            // Если это обычная тема (дождь, снег, солнце)
-            if (theme !== 'none') document.body.classList.add(`theme-${theme}`);
+            // Снег, солнце и др - обычные темы
+            document.body.classList.add(`theme-${theme}`);
             createParticles(theme);
         }
+        
+        // Сохраняем выбранную тему
+        localStorage.setItem('selected-theme', theme);
     });
 });
+
+// Загружаем сохранённую тему при загрузке страницы
+function loadSavedTheme() {
+    const savedTheme = localStorage.getItem('selected-theme') || 'custom';
+    const themeInput = document.querySelector(`input[name="theme"][value="${savedTheme}"]`);
+    if (themeInput) {
+        themeInput.checked = true;
+        themeInput.dispatchEvent(new Event('change'));
+    } else {
+        // Если тема не найдена, применяем custom по умолчанию
+        document.body.classList.add('theme-custom');
+        document.body.style.setProperty('--custom-bg', `url('https://i.ibb.co/sdtYVVQy/2c6b0208a4ca4a574f8f0a88ab7fa050.jpg')`);
+    }
+}
 
 // Скачивание с анимацией
 window.downloadCheat = function(id) {
@@ -210,8 +254,9 @@ window.downloadCheat = function(id) {
 // Админ: Смена файла
 window.editCheatFile = function(id) {
     tg.HapticFeedback.impactOccurred('medium');
-    const link = `https://t.me/${botUsername}?start=edit_${id}`;
-    tg.openTelegramLink(link);
+    // Открываем бот с командой edit_ через deep link
+    const editUrl = `https://t.me/${botUsername}?start=edit_${id}`;
+    tg.openTelegramLink(editUrl);
 };
 
 // --- Фильтр ---
@@ -356,14 +401,21 @@ const closeModal = () => modalOverlay.classList.remove('active');
 document.querySelectorAll('.modal-close-icon, .modal-close-btn').forEach(b => b.addEventListener('click', closeModal));
 modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
 
-    window.deleteCheat = async function(id) {
+window.deleteCheat = async function(id) {
+    tg.HapticFeedback.impactOccurred('warning');
     tg.showConfirm('Точно удалить этот чит?', async (confirmed) => {
         if (confirmed) {
-            await fetch(`${SUPABASE_URL}/rest/v1/cheats?id=eq.${id}`, {
-                method: 'DELETE',
-                headers: SB_HEADERS
-            });
-            fetchCheats();
+            try {
+                await fetch(`${SUPABASE_URL}/rest/v1/cheats?id=eq.${id}`, {
+                    method: 'DELETE',
+                    headers: SB_HEADERS
+                });
+                tg.HapticFeedback.notificationOccurred('success');
+                fetchCheats(); // Перезагружаем список
+            } catch (err) {
+                console.error('Ошибка удаления:', err);
+                tg.showAlert('Ошибка при удалении');
+            }
         }
     });
 };
@@ -378,7 +430,6 @@ document.getElementById('search-input').addEventListener('input', (e) => {
 });
 
 tg.ready();
+loadSavedTheme(); // Загружаем сохранённую тему
 fetchCheats();
-// Запускаем дождь по умолчанию
-document.body.classList.add('theme-rain');
 createParticles('rain');

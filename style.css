@@ -5,10 +5,14 @@
     --text-main: #ffffff;
     --text-muted: rgba(255, 255, 255, 0.6);
     
-    /* Настройки Glassmorphism */
+    /* Настройки Glassmorphism (обычный режим - для темных/пользовательских обоев) */
     --glass-bg: rgba(255, 255, 255, 0.05);
     --glass-border: rgba(255, 255, 255, 0.1);
     --glass-blur: 16px;
+    
+    /* Темный режим для светлых обоев */
+    --glass-bg-dark: rgba(0, 0, 0, 0.25);
+    --glass-border-dark: rgba(0, 0, 0, 0.15);
     
     --modal-bg: #161324;
 }
@@ -640,10 +644,30 @@ body.theme-custom {
     cursor: pointer;
 }
 
-/* Темы для фона */
-body.theme-rain { background: linear-gradient(to bottom, #0e0a1a, #080808); }
+/* Темы для фона и визуального оформления */
+body.theme-rain { 
+    background: var(--rain-bg, linear-gradient(to bottom, #0e0a1a, #080808)); 
+}
+
+/* Для темы "Дождь" с светлыми обоями - применяем темный glass-стиль */
+body.theme-rain.light-bg .glass,
+body.theme-rain.light-bg.glass {
+    background: var(--glass-bg-dark);
+    border-color: var(--glass-border-dark);
+}
+
+/* Темы снега и солнца */
 body.theme-snow { background: linear-gradient(to bottom, #1a1525, #080808); }
 body.theme-sun { background: linear-gradient(to bottom, #1a0a2e, #080808); }
+
+/* Тема пользовательского фона - обычный стиль */
+body.theme-custom {
+    background-image: var(--custom-bg);
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+}
+
 body.admin-mode .admin-actions {
     display: flex !important;
     animation: fadeIn 0.3s ease;
