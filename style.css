@@ -40,45 +40,49 @@ body {
     z-index: -1;
     overflow: hidden;
     pointer-events: none;
+    /* Оптимизация для мобилок */
+    transform: translateZ(0);
 }
 
 .sphere {
     position: absolute;
     border-radius: 50%;
-    filter: blur(120px);
-    opacity: 0.6;
-    animation: float 20s infinite alternate ease-in-out;
+    filter: blur(80px); /* Уменьшаем блюр для производительности */
+    opacity: 0.4; /* Немного меньше прозрачность для легкости */
+    will-change: transform; /* Сообщаем браузеру об анимации */
+    animation: float 25s infinite alternate ease-in-out;
+    backface-visibility: hidden;
 }
 
 .sphere.pink {
-    width: 300px;
-    height: 300px;
-    background: #ff4081;
-    top: 10%;
-    left: -50px;
+    width: 250px;
+    height: 250px;
+    background: radial-gradient(circle, #ff4081, transparent 70%); /* Градиент вместо сплошного цвета */
+    top: 15%;
+    left: -30px;
 }
 
 .sphere.purple {
-    width: 400px;
-    height: 400px;
-    background: #d500f9;
-    bottom: 10%;
-    right: -100px;
+    width: 350px;
+    height: 350px;
+    background: radial-gradient(circle, #d500f9, transparent 70%);
+    bottom: 15%;
+    right: -50px;
     animation-delay: -5s;
 }
 
 .sphere.blue {
-    width: 250px;
-    height: 250px;
-    background: #4facfe;
-    top: 40%;
-    right: 15%;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, #4facfe, transparent 70%);
+    top: 45%;
+    right: 10%;
     animation-delay: -10s;
 }
 
 @keyframes float {
-    0% { transform: translate(0, 0); }
-    100% { transform: translate(30px, 50px); }
+    0% { transform: translate3d(0, 0, 0); }
+    100% { transform: translate3d(20px, 30px, 0); }
 }
 
 body.theme-custom {
@@ -86,17 +90,27 @@ body.theme-custom {
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
+    /* Ускоряем рендер фона */
+    will-change: transform;
 }
 
 .glass {
     background: var(--glass-bg);
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
+    /* ОПТИМИЗАЦИЯ: используем blur только если он поддерживается и не перегружаем */
+    backdrop-filter: blur(12px); /* Снижаем до 12px для скорости */
+    -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--glass-border);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    /* box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); -- Убираем тяжелые тени у всех элементов */
     border-radius: 20px;
+    /* Форсируем использование GPU */
     transform: translateZ(0); 
     backface-visibility: hidden;
+    will-change: transform;
+}
+
+/* Добавляем тень только там, где она реально нужна (например, у карточек) */
+.card.glass {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .raindrop, .snowflake {
@@ -737,71 +751,59 @@ body.admin-mode .avatar {
     box-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
     animation: snowFall linear infinite;
     top: -10px;
+    will-change: transform; /* Оптимизация */
 }
 
 .raindrop {
     position: absolute;
     width: 1px;
-    height: 25px; /* Длинные капли */
+    height: 25px; 
     background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0.5));
     animation: rainFall linear infinite;
     top: -30px;
+    will-change: transform; /* Оптимизация */
 }
 
 @keyframes snowFall {
-    0% { transform: translateY(-10px) translateX(0); opacity: 0; }
+    0% { transform: translate3d(0, -10px, 0); opacity: 0; }
     10% { opacity: 0.8; }
     90% { opacity: 0.8; }
-    100% { transform: translateY(105vh) translateX(25px); opacity: 0; }
+    100% { transform: translate3d(25px, 105vh, 0); opacity: 0; }
 }
 @keyframes rainFall {
-    0% { transform: translateY(-30px); opacity: 0; }
+    0% { transform: translate3d(0, -30px, 0); opacity: 0; }
     10% { opacity: 1; }
     90% { opacity: 1; }
-    100% { transform: translateY(105vh); opacity: 0; }
+    100% { transform: translate3d(0, 105vh, 0); opacity: 0; }
 }
 
-/* Солнечные блики (градиент) */
+/* Солнечные блики (градиент) - Оптимизировано */
 body.theme-sun {
-    background: #050505; /* Глубокий темный фон */
+    background: #0d0b14; 
 }
 
-/* Используем контейнер particles для создания 8 пятен */
 body.theme-sun #particles::before {
     content: "";
     position: fixed;
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    top: -150px; /* Прячем основной элемент за экран */
-    left: -150px;
-    /* Генерируем 8 пятен в разных частях экрана через тени */
-    box-shadow: 
-        20vw 20vh 150px 60px rgba(255, 200, 0, 0.15),
-        80vw 15vh 130px 50px rgba(255, 140, 0, 0.12),
-        50vw 50vh 180px 70px rgba(255, 180, 0, 0.1),
-        15vw 80vh 140px 55px rgba(255, 100, 0, 0.13),
-        85vw 85vh 160px 65px rgba(255, 220, 0, 0.11),
-        40vw 10vh 120px 45px rgba(255, 160, 0, 0.09),
-        70vw 60vh 140px 50px rgba(255, 130, 0, 0.12),
-        10vw 45vh 150px 60px rgba(255, 190, 0, 0.1);
-    filter: blur(40px);
-    animation: sunFlicker 8s infinite ease-in-out;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    /* Используем градиенты вместо тяжелых теней */
+    background: 
+        radial-gradient(circle at 20% 20%, rgba(255, 200, 0, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 15%, rgba(255, 140, 0, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(255, 180, 0, 0.07) 0%, transparent 50%),
+        radial-gradient(circle at 15% 80%, rgba(255, 100, 0, 0.09) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: -1;
+    animation: sunFlicker 10s infinite ease-in-out;
+    will-change: opacity;
 }
 
 @keyframes sunFlicker {
-    0%, 100% { 
-        opacity: 0.3; 
-        transform: scale(1) translate(0, 0); 
-    }
-    33% { 
-        opacity: 0.8; 
-        transform: scale(1.1) translate(20px, -30px); 
-    }
-    66% { 
-        opacity: 0.5; 
-        transform: scale(0.9) translate(-25px, 15px); 
-    }
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.7; }
 }
 .modal-body p {
     white-space: pre-wrap; /* Заставляет HTML уважать переносы строк из бота */

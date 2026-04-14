@@ -125,7 +125,7 @@ function createParticles(theme) {
     particlesContainer.innerHTML = ''; 
     if (theme === 'none' || theme === 'sun') return;
 
-    const count = theme === 'rain' ? 70 : 50; 
+    const count = theme === 'rain' ? 40 : 25; 
     
     for (let i = 0; i < count; i++) {
         let p = document.createElement('div');
@@ -136,16 +136,16 @@ function createParticles(theme) {
         
         if (theme === 'rain') {
             // Дождь: падает быстро
-            p.style.animationDuration = (Math.random() * 0.3 + 0.4) + 's'; 
+            p.style.animationDuration = (Math.random() * 0.5 + 0.5) + 's'; 
             p.style.animationDelay = (Math.random() * 2) + 's';
         } else {
             // Снег: падает медленно, снежинки разного размера
-            const size = Math.random() * 3 + 1.5; // от 1.5px до 4.5px
+            const size = Math.random() * 2.5 + 1.5; 
             p.style.width = size + 'px';
             p.style.height = size + 'px';
-            p.style.animationDuration = (Math.random() * 5 + 4) + 's'; // 4-9 секунд
+            p.style.animationDuration = (Math.random() * 4 + 6) + 's'; 
             p.style.animationDelay = (Math.random() * 5) + 's';
-            p.style.opacity = Math.random() * 0.5 + 0.3; // Разная прозрачность для эффекта глубины
+            p.style.opacity = Math.random() * 0.4 + 0.2; 
         }
         
         particlesContainer.appendChild(p);
