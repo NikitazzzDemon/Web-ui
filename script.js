@@ -190,7 +190,7 @@ document.querySelectorAll('input[name="theme"]').forEach(option => {
                 document.body.style.setProperty('--rain-bg', 'linear-gradient(to bottom, #87CEEB, #E0E5EC)');
                 // Запрашиваем у пользователя ссылку на картинку
                 setTimeout(() => {
-                    const bgUrl = prompt('https://i.ibb.co/fYkkjF7s/5c4be6c13f5b1596f6da40eaaf6c1518.jpg');
+                    const bgUrl = prompt('Введите URL светлой картинки для темы "Дождь":\n(Оставьте пустым для градиента)');
                     if (bgUrl && bgUrl.trim()) {
                         localStorage.setItem('rain-bg-url', bgUrl.trim());
                         document.body.style.setProperty('--rain-bg', `url('${bgUrl.trim()}')`);
@@ -217,7 +217,7 @@ document.querySelectorAll('input[name="theme"]').forEach(option => {
                 document.body.classList.add('theme-snow');
                 document.body.style.setProperty('--snow-bg', 'linear-gradient(to bottom, #b0c4de, #e8e8e8)');
                 setTimeout(() => {
-                    const bgUrl = prompt('https://i.ibb.co/kg0JfXMM/f3fa7b75c87277e7368e03b41b69911c.jpg');
+                    const bgUrl = prompt('Введите URL светлой картинки для темы "Снегопад":\n(Оставьте пустым для градиента)');
                     if (bgUrl && bgUrl.trim()) {
                         localStorage.setItem('snow-bg-url', bgUrl.trim());
                         document.body.style.setProperty('--snow-bg', `url('${bgUrl.trim()}')`);
@@ -234,7 +234,7 @@ document.querySelectorAll('input[name="theme"]').forEach(option => {
                 document.body.classList.add('theme-sun');
                 document.body.style.setProperty('--sun-bg', 'linear-gradient(to bottom, #ffd89b, #e8e8e8)');
                 setTimeout(() => {
-                    const bgUrl = prompt('https://i.ibb.co/WWXGyWGP/df79dd417c696e8c13597e1409af12e1.jpg');
+                    const bgUrl = prompt('Введите URL светлой картинки для темы "Солнечные блики":\n(Оставьте пустым для градиента)');
                     if (bgUrl && bgUrl.trim()) {
                         localStorage.setItem('sun-bg-url', bgUrl.trim());
                         document.body.style.setProperty('--sun-bg', `url('${bgUrl.trim()}')`);
