@@ -315,6 +315,12 @@ body.theme-custom {
     border-radius: 10px;
 }
 
+/* Для светлых фонов темы снега - теги темнее */
+body.theme-snow.light-bg .tag {
+    background: rgba(0, 0, 0, 0.25);
+    color: #333;
+}
+
 /* Выпадающее меню внутри карточки */
 .card-expand-toggle {
     color: #ff4081;
