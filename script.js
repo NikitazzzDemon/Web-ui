@@ -190,7 +190,7 @@ document.querySelectorAll('input[name="theme"]').forEach(option => {
                 document.body.style.setProperty('--rain-bg', 'linear-gradient(to bottom, #87CEEB, #E0E5EC)');
                 // Запрашиваем у пользователя ссылку на картинку
                 setTimeout(() => {
-                    const bgUrl = prompt('Введите URL светлой картинки для темы "Дождь":\n(Оставьте пустым для градиента)');
+                    const bgUrl = prompt('https://i.ibb.co/fYkkjF7s/5c4be6c13f5b1596f6da40eaaf6c1518.jpg');
                     if (bgUrl && bgUrl.trim()) {
                         localStorage.setItem('rain-bg-url', bgUrl.trim());
                         document.body.style.setProperty('--rain-bg', `url('${bgUrl.trim()}')`);
@@ -217,7 +217,7 @@ document.querySelectorAll('input[name="theme"]').forEach(option => {
                 document.body.classList.add('theme-snow');
                 document.body.style.setProperty('--snow-bg', 'linear-gradient(to bottom, #b0c4de, #e8e8e8)');
                 setTimeout(() => {
-                    const bgUrl = prompt('Введите URL светлой картинки для темы "Снегопад":\n(Оставьте пустым для градиента)');
+                    const bgUrl = prompt('https://i.ibb.co/kg0JfXMM/f3fa7b75c87277e7368e03b41b69911c.jpg');
                     if (bgUrl && bgUrl.trim()) {
                         localStorage.setItem('snow-bg-url', bgUrl.trim());
                         document.body.style.setProperty('--snow-bg', `url('${bgUrl.trim()}')`);
@@ -234,7 +234,7 @@ document.querySelectorAll('input[name="theme"]').forEach(option => {
                 document.body.classList.add('theme-sun');
                 document.body.style.setProperty('--sun-bg', 'linear-gradient(to bottom, #ffd89b, #e8e8e8)');
                 setTimeout(() => {
-                    const bgUrl = prompt('Введите URL светлой картинки для темы "Солнечные блики":\n(Оставьте пустым для градиента)');
+                    const bgUrl = prompt('https://i.ibb.co/WWXGyWGP/df79dd417c696e8c13597e1409af12e1.jpg');
                     if (bgUrl && bgUrl.trim()) {
                         localStorage.setItem('sun-bg-url', bgUrl.trim());
                         document.body.style.setProperty('--sun-bg', `url('${bgUrl.trim()}')`);
@@ -390,7 +390,7 @@ async function fetchCheats() {
                         Скачать
                     </button>
                     
-                    <button class="subscribe-btn" onclick="toggleSubscription(${cheat.id}, '${cheat.name}')" id="sub-btn-${cheat.id}">
+                    <button class="subscribe-btn" onclick="toggleSubscription(${cheat.id}, '${cheat.name.replace(/'/g, "\\'")}')" id="sub-btn-${cheat.id}" data-subscribed="false">
                         🔔 Подписаться на обновления
                     </button>
                     
@@ -432,9 +432,10 @@ async function loadUserSubscriptions() {
             subs.forEach(sub => {
                 const btn = document.getElementById(`sub-btn-${sub.cheat_id}`);
                 if (btn) {
-                    btn.textContent = '🔔 Подписка оформлена';
-                    btn.style.background = 'rgba(0, 200, 83, 0.15)';
-                    btn.style.borderColor = 'rgba(0, 200, 83, 0.3)';
+                    btn.dataset.subscribed = 'true';
+                    btn.textContent = 'Отписаться от ' + (document.querySelector(`#sub-btn-${sub.cheat_id}`)?.closest('.card')?.querySelector('h2')?.textContent || 'чита');
+                    btn.style.background = 'rgba(255, 82, 82, 0.15)';
+                    btn.style.borderColor = 'rgba(255, 82, 82, 0.3)';
                 }
             });
         }
@@ -469,26 +470,51 @@ modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) c
 
 window.deleteCheat = async function(id) {
     tg.HapticFeedback.impactOccurred('warning');
-    tg.showConfirm('Точно удалить этот чит?', async (confirmed) => {
+    try {
+        const confirmed = await new Promise((resolve) => {
+            tg.showConfirm('Точно удалить этот чит?', (result) => resolve(result));
+        });
         if (confirmed) {
-            try {
-                await fetch(`${SUPABASE_URL}/rest/v1/cheats?id=eq.${id}`, {
-                    method: 'DELETE',
-                    headers: SB_HEADERS
-                });
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/cheats?id=eq.${id}`, {
+                method: 'DELETE',
+                headers: SB_HEADERS
+            });
+            if (res.ok) {
                 tg.HapticFeedback.notificationOccurred('success');
-                fetchCheats(); // Перезагружаем список
-            } catch (err) {
-                console.error('Ошибка удаления:', err);
+                fetchCheats();
+            } else {
                 tg.showAlert('Ошибка при удалении');
             }
         }
-    });
+    } catch (err) {
+        console.error('Ошибка удаления:', err);
+        tg.showAlert('Ошибка при удалении');
+    }
 };
 
 window.toggleSubscription = function(id, name) {
     tg.HapticFeedback.impactOccurred('light');
+    const btn = document.getElementById(`sub-btn-${id}`);
+    if (btn) {
+        btn.textContent = '⏳ Ожидание...';
+        btn.disabled = true;
+    }
     tg.openTelegramLink(`https://t.me/${botUsername}?start=sub_${id}`);
+    setTimeout(() => {
+        if (btn) {
+            const isSubscribed = btn.dataset.subscribed === 'true';
+            if (isSubscribed) {
+                btn.textContent = 'Отписаться от ' + name;
+                btn.style.background = 'rgba(255, 82, 82, 0.15)';
+                btn.style.borderColor = 'rgba(255, 82, 82, 0.3)';
+            } else {
+                btn.textContent = '✓ Успешная подписка';
+                btn.style.background = 'rgba(0, 200, 83, 0.15)';
+                btn.style.borderColor = 'rgba(0, 200, 83, 0.3)';
+            }
+            btn.disabled = false;
+        }
+    }, 1500);
 };
 
 // Поиск (локальный по названиям читов)
