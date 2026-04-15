@@ -271,6 +271,7 @@ window.filterCards = function(selectedTag) {
 
 
 // --- ДИНАМИЧЕСКАЯ ЗАГРУЗКА И ТЕГИ ---
+// --- ДИНАМИЧЕСКАЯ ЗАГРУЗКА И ТЕГИ ---
 async function fetchCheats() {
     const container = document.getElementById('cards-container');
     container.innerHTML = `
@@ -280,50 +281,40 @@ async function fetchCheats() {
     try {
         // 1. Ждем ID пользователя (до 2 секунд)
         let userId = null;
-        console.log('[DEBUG] Начало ожидания Telegram ID...');
         for (let i = 0; i < 10; i++) {
             const currentUser = window.Telegram.WebApp.initDataUnsafe?.user;
             if (currentUser && currentUser.id) {
                 userId = String(currentUser.id);
-                console.log('[DEBUG] Telegram ID получен:', userId);
                 break;
             }
             await new Promise(r => setTimeout(r, 200));
         }
 
-        if (!userId) {
-            console.warn('[DEBUG] ID пользователя не найден в Telegram WebApp после ожидания');
-        }
-
         // 2. Параллельно грузим читы и подписки
-        console.log('[DEBUG] Загрузка читов и подписок из базы...');
         const cheatsPromise = fetch(`${SUPABASE_URL}/rest/v1/cheats?select=*&order=id.desc`, { headers: SB_HEADERS }).then(r => r.json());
         
         let subsPromise = Promise.resolve([]);
         if (userId) {
-            const subsUrl = `${SUPABASE_URL}/rest/v1/subscriptions?user_id=eq.${userId}&select=cheat_id&t=${Date.now()}`;
-            console.log('[DEBUG] Запрос подписок по URL:', subsUrl);
-            subsPromise = fetch(subsUrl, { headers: SB_HEADERS })
+            let subsUrl = `${SUPABASE_URL}/rest/v1/subscriptions?user_id=eq.${userId}&select=cheat_id`;
+            const urlObj = new URL(subsUrl);
+            urlObj.searchParams.delete('t');
+            subsUrl = urlObj.toString();
+            console.log('[DEBUG] Отправка запроса подписок с URL:', subsUrl, 'и заголовками:', SB_HEADERS);
+            subsPromise = fetch(subsUrl, { headers: SB_HEADERS, cache: 'no-store' })
                 .then(async r => {
-                    if (!r.ok) {
-                        const errText = await r.text();
-                        console.error('[DEBUG] Ошибка запроса подписок:', r.status, errText);
+                    console.log('[DEBUG] Ответ на запрос подписок, статус:', r.status, r.statusText);
+                    if (!r.ok) { 
+                        const errorBody = await r.text();
+                        console.error('[DEBUG] Ошибка запроса подписок:', r.status, errorBody);
                         return [];
                     }
                     return r.json();
                 })
-                .catch(err => {
-                    console.error('[DEBUG] Ошибка сети при запросе подписок:', err);
-                    return [];
-                });
+                .catch(() => []);
         }
 
         const [cheats, subs] = await Promise.all([cheatsPromise, subsPromise]);
-        console.log('[DEBUG] Получено читов:', Array.isArray(cheats) ? cheats.length : 'ошибка');
-        console.log('[DEBUG] Получено подписок пользователя:', JSON.stringify(subs));
-        
         const subscribedIds = Array.isArray(subs) ? subs.map(s => s.cheat_id) : [];
-        console.log('[DEBUG] Массив ID подписок:', subscribedIds);
 
         container.innerHTML = '';
 
