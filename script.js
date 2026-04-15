@@ -360,8 +360,14 @@ async function fetchCheats() {
 }
 
 async function loadUserSubscriptions() {
-    const currentUser = window.Telegram.WebApp.initDataUnsafe?.user;
-    if (!currentUser || !currentUser.id) return;
+    // Ждем появления ID пользователя, если его нет сразу
+    let currentUser = window.Telegram.WebApp.initDataUnsafe?.user;
+    
+    if (!currentUser || !currentUser.id) {
+        // Пробуем еще раз через 500мс
+        setTimeout(loadUserSubscriptions, 500);
+        return;
+    }
 
     const userId = String(currentUser.id);
 
