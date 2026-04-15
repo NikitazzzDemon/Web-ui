@@ -22,12 +22,42 @@ const BACKGROUND_URLS = {
 
 console.log('[DEBUG] WebApp загружен, версия:', tg.version);
 
+// --- СОВМЕСТИМОСТЬ (Fallback для старых версий Telegram) ---
+const safeTg = {
+    showAlert: (msg) => {
+        try {
+            tg.showAlert(msg);
+        } catch (e) {
+            alert(msg);
+        }
+    },
+    showConfirm: (msg, callback) => {
+        try {
+            tg.showConfirm(msg, callback);
+        } catch (e) {
+            const result = confirm(msg);
+            callback(result);
+        }
+    },
+    haptic: (type = 'light') => {
+        try {
+            if (type === 'success' || type === 'warning' || type === 'error') {
+                tg.HapticFeedback.notificationOccurred(type);
+            } else {
+                tg.HapticFeedback.impactOccurred(type);
+            }
+        } catch (e) {
+            console.warn('[HAPTIC] Not supported');
+        }
+    }
+};
+
 // --- ГЛОБАЛЬНЫЕ ФУНКЦИИ АДМИНА ---
 window.deleteCheat = async function(id) {
     console.log('[DELETE] Попытка удаления ID:', id);
-    tg.HapticFeedback.impactOccurred('warning');
+    safeTg.haptic('warning');
     
-    tg.showConfirm('Удалить этот чит полностью?', async (confirmed) => {
+    safeTg.showConfirm('Удалить этот чит полностью?', async (confirmed) => {
         console.log('[DELETE] Подтверждение:', confirmed);
         if (confirmed) {
             const url = `${SUPABASE_URL}/rest/v1/cheats?id=eq.${id}`;
@@ -47,14 +77,14 @@ window.deleteCheat = async function(id) {
                 
                 if (res.ok) {
                     console.log('[DELETE] Успешно!');
-                    tg.HapticFeedback.notificationOccurred('success');
+                    safeTg.haptic('success');
                     fetchCheats(); // Перезагружаем список
                 } else {
                     const errorText = await res.text();
                     console.error('[DELETE] Ошибка:', errorText);
                     
                     // Если прямая очистка не сработала (из-за RLS), предлагаем бот-метод
-                    tg.showConfirm(`Ошибка удаления (${res.status}). Перейти в бота для удаления?`, (goBot) => {
+                    safeTg.showConfirm(`Ошибка удаления (${res.status}). Перейти в бота для удаления?`, (goBot) => {
                         if (goBot) {
                             tg.openTelegramLink(`https://t.me/${botUsername}?start=del_${id}`);
                         }
@@ -62,7 +92,7 @@ window.deleteCheat = async function(id) {
                 }
             } catch (err) {
                 console.error('[DELETE] Исключение:', err);
-                tg.showAlert('Ошибка сети при удалении: ' + err.message);
+                safeTg.showAlert('Ошибка сети при удалении: ' + err.message);
             }
         }
     });
@@ -127,7 +157,7 @@ let avatarClicks = 0;
 document.getElementById('user-avatar').addEventListener('click', () => {
     avatarClicks++;
     if (avatarClicks === 5) {
-        tg.HapticFeedback.notificationOccurred('success');
+        safeTg.haptic('success');
         document.body.classList.toggle('admin-mode');
         
         // Показываем/скрываем кнопки админа на всех карточках
@@ -136,7 +166,7 @@ document.getElementById('user-avatar').addEventListener('click', () => {
             block.style.display = document.body.classList.contains('admin-mode') ? 'flex' : 'none';
         });
 
-        tg.showAlert(document.body.classList.contains('admin-mode') ? 'Режим модератора АКТИВИРОВАН.' : 'Режим модератора ВЫКЛЮЧЕН');
+        safeTg.showAlert(document.body.classList.contains('admin-mode') ? 'Режим модератора АКТИВИРОВАН.' : 'Режим модератора ВЫКЛЮЧЕН');
         avatarClicks = 0;
     }
 });
@@ -179,7 +209,7 @@ window.addEventListener('resize', updateNavIndicator);
 
 // КЛИК ПО ИКОНКЕ ПРОФИЛЯ СЛЕВА ВВЕРХУ (Требование 1)
 document.getElementById('top-profile-btn').addEventListener('click', () => {
-    tg.HapticFeedback.impactOccurred('light');
+    safeTg.haptic('light');
     switchView('view-profile');
 });
 
@@ -266,7 +296,7 @@ function loadSavedTheme() {
 
 // Скачивание с анимацией
 window.downloadCheat = function(id) {
-    tg.HapticFeedback.impactOccurred('light');
+    safeTg.haptic('light');
     
     // Показываем анимацию загрузки
     const loader = document.getElementById('loading-overlay');
@@ -286,7 +316,7 @@ window.downloadCheat = function(id) {
 
 // Админ: Смена файла
 window.editCheatFile = function(id) {
-    tg.HapticFeedback.impactOccurred('medium');
+    safeTg.haptic('medium');
     // Открываем бот с командой edit_ через deep link
     const editUrl = `https://t.me/${botUsername}?start=edit_${id}`;
     tg.openTelegramLink(editUrl);
@@ -470,7 +500,7 @@ document.querySelectorAll('.modal-close-icon, .modal-close-btn').forEach(b => b.
 modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
 
 window.toggleSubscription = async function(id, name) {
-    tg.HapticFeedback.impactOccurred('light');
+    safeTg.haptic('light');
     const btn = document.getElementById(`sub-btn-${id}`);
     if (btn) {
         btn.textContent = '⏳ Ожидание...';
