@@ -415,69 +415,39 @@ window.toggleSubscription = async function(id, name) {
     const btn = document.getElementById(`sub-btn-${id}`);
     if (!btn) return;
 
-    const currentUser = window.Telegram.WebApp.initDataUnsafe?.user;
-    if (!currentUser || !currentUser.id) {
-        tg.showAlert('Ошибка: пользователь не определен');
-        return;
-    }
-
-    const userId = String(currentUser.id);
     const isSubscribed = btn.dataset.subscribed === 'true';
-
+    
+    // Временно меняем текст для обратной связи
     btn.textContent = '⏳ Ожидание...';
     btn.disabled = true;
 
-    try {
+    // Перекидываем в бота для фактического изменения в базе
+    tg.openTelegramLink(`https://t.me/${botUsername}?start=sub_${id}`);
+
+    // Через небольшую паузу обновляем текст кнопки в UI
+    setTimeout(() => {
         if (isSubscribed) {
-            // Отписаться
-            const res = await fetch(`${SUPABASE_URL}/rest/v1/subscriptions?cheat_id=eq.${id}&user_id=eq.${userId}`, {
-                method: 'DELETE',
-                headers: SB_HEADERS
-            });
-
-            if (res.ok) {
-                btn.dataset.subscribed = 'false';
-                btn.textContent = '🔔 Подписаться на обновления';
-                btn.style.background = '';
-                btn.style.borderColor = '';
-            } else {
-                throw new Error('Ошибка сервера');
-            }
+            // Если были подписаны - теперь (после бота) будем не подписаны
+            btn.dataset.subscribed = 'false';
+            btn.textContent = '🔔 Подписаться на обновления';
+            btn.style.background = '';
+            btn.style.borderColor = '';
         } else {
-            // Подписаться
-            const res = await fetch(`${SUPABASE_URL}/rest/v1/subscriptions`, {
-                method: 'POST',
-                headers: {
-                    ...SB_HEADERS,
-                    "Content-Type": "application/json",
-                    "Prefer": "return=minimal"
-                },
-                body: JSON.stringify({
-                    cheat_id: id,
-                    user_id: userId
-                })
-            });
-
-            if (res.ok) {
-                btn.dataset.subscribed = 'true';
+            // Если не были подписаны - теперь будем подписаны
+            btn.dataset.subscribed = 'true';
+            btn.textContent = '✓ Успешная подписка';
+            btn.style.background = 'rgba(0, 200, 83, 0.15)';
+            btn.style.borderColor = 'rgba(0, 200, 83, 0.3)';
+            
+            // Через 2 секунды меняем "Успешная подписка" на "Отписаться от..."
+            setTimeout(() => {
                 btn.textContent = 'Отписаться от ' + name;
                 btn.style.background = 'rgba(255, 82, 82, 0.15)';
                 btn.style.borderColor = 'rgba(255, 82, 82, 0.3)';
-            } else {
-                throw new Error('Ошибка сервера');
-            }
+            }, 2000);
         }
-    } catch (e) {
-        // Восстанавливаем состояние при ошибке
-        if (isSubscribed) {
-            btn.textContent = 'Отписаться от ' + name;
-        } else {
-            btn.textContent = '🔔 Подписаться на обновления';
-        }
-        tg.showAlert('Ошибка при изменении подписки');
-    } finally {
         btn.disabled = false;
-    }
+    }, 1500);
 };
 
 // Поиск (локальный по названиям читов)
