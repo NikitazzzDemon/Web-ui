@@ -7,9 +7,7 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const SB_HEADERS = {
     "apikey": SUPABASE_ANON_KEY,
     "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
-    "Accept-Profile": "public",
-    "Content-Type": "application/json",
-    "Prefer": "return=minimal"
+    "Accept-Profile": "public"
 };
 
 const botUsername = "Demons_moderation_bot";
@@ -20,6 +18,59 @@ const BACKGROUND_URLS = {
     rain: 'https://i.ibb.co/fYkkjF7s/5c4be6c13f5b1596f6da40eaaf6c1518.jpg',
     snow: 'https://i.ibb.co/kg0JfXMM/f3fa7b75c87277e7368e03b41b69911c.jpg',
     sun: 'https://i.ibb.co/WWXGyWGP/df79dd417c696e8c13597e1409af12e1.jpg'
+};
+
+console.log('[DEBUG] WebApp загружен, версия:', tg.version);
+
+// --- ГЛОБАЛЬНЫЕ ФУНКЦИИ АДМИНА ---
+window.deleteCheat = async function(id) {
+    console.log('[DELETE] Попытка удаления ID:', id);
+    tg.HapticFeedback.impactOccurred('warning');
+    
+    tg.showConfirm('Удалить этот чит полностью?', async (confirmed) => {
+        console.log('[DELETE] Подтверждение:', confirmed);
+        if (confirmed) {
+            const url = `${SUPABASE_URL}/rest/v1/cheats?id=eq.${id}`;
+            console.log('[DELETE] Запрос на:', url);
+            
+            try {
+                const res = await fetch(url, {
+                    method: 'DELETE',
+                    headers: {
+                        ...SB_HEADERS,
+                        "Content-Type": "application/json",
+                        "Prefer": "return=minimal"
+                    }
+                });
+                
+                console.log('[DELETE] Статус ответа:', res.status);
+                
+                if (res.ok) {
+                    console.log('[DELETE] Успешно!');
+                    tg.HapticFeedback.notificationOccurred('success');
+                    fetchCheats(); // Перезагружаем список
+                } else {
+                    const errorText = await res.text();
+                    console.error('[DELETE] Ошибка:', errorText);
+                    
+                    // Если прямая очистка не сработала (из-за RLS), предлагаем бот-метод
+                    tg.showConfirm(`Ошибка удаления (${res.status}). Перейти в бота для удаления?`, (goBot) => {
+                        if (goBot) {
+                            tg.openTelegramLink(`https://t.me/${botUsername}?start=del_${id}`);
+                        }
+                    });
+                }
+            } catch (err) {
+                console.error('[DELETE] Исключение:', err);
+                tg.showAlert('Ошибка сети при удалении: ' + err.message);
+            }
+        }
+    });
+};
+
+window.editCheatFile = function(id) {
+    console.log('[ADMIN] Редактирование файла для ID:', id);
+    tg.openTelegramLink(`https://t.me/${botUsername}?start=edit_${id}`);
 };
 
 // --- Данные пользователя ---
@@ -417,30 +468,6 @@ window.openModal = function(title, id, type) {
 const closeModal = () => modalOverlay.classList.remove('active');
 document.querySelectorAll('.modal-close-icon, .modal-close-btn').forEach(b => b.addEventListener('click', closeModal));
 modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
-
-window.deleteCheat = async function(id) {
-    tg.HapticFeedback.impactOccurred('warning');
-    try {
-        const confirmed = await new Promise((resolve) => {
-            tg.showConfirm('Точно удалить этот чит?', (result) => resolve(result));
-        });
-        if (confirmed) {
-            const res = await fetch(`${SUPABASE_URL}/rest/v1/cheats?id=eq.${id}`, {
-                method: 'DELETE',
-                headers: SB_HEADERS
-            });
-            if (res.ok) {
-                tg.HapticFeedback.notificationOccurred('success');
-                fetchCheats();
-            } else {
-                tg.showAlert('Ошибка при удалении');
-            }
-        }
-    } catch (err) {
-        console.error('Ошибка удаления:', err);
-        tg.showAlert('Ошибка при удалении');
-    }
-};
 
 window.toggleSubscription = async function(id, name) {
     tg.HapticFeedback.impactOccurred('light');
