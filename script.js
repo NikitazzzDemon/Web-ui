@@ -275,11 +275,24 @@ async function fetchCheats() {
     container.innerHTML = `
         <div style="text-align: center; color: var(--text-muted); padding: 20px;">Загрузка файлов...</div>
     `;
+    
     try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/cheats?select=*&order=id.desc`, { headers: SB_HEADERS });
-        const cheats = await res.json();
+        // 1. Сначала пытаемся получить данные пользователя
+        let currentUser = window.Telegram.WebApp.initDataUnsafe?.user;
+        let userSubs = [];
+
+        // 2. Параллельно загружаем читы и (если есть юзер) его подписки
+        const cheatsPromise = fetch(`${SUPABASE_URL}/rest/v1/cheats?select=*&order=id.desc`, { headers: SB_HEADERS }).then(r => r.json());
         
-        const container = document.getElementById('cards-container');
+        let subsPromise = Promise.resolve([]);
+        if (currentUser && currentUser.id) {
+            const userId = String(currentUser.id);
+            subsPromise = fetch(`${SUPABASE_URL}/rest/v1/subscriptions?user_id=eq.${userId}&select=cheat_id`, { headers: SB_HEADERS }).then(r => r.json());
+        }
+
+        const [cheats, subs] = await Promise.all([cheatsPromise, subsPromise]);
+        userSubs = Array.isArray(subs) ? subs.map(s => s.cheat_id) : [];
+
         container.innerHTML = '';
 
         if (!Array.isArray(cheats) || cheats.length === 0) {
@@ -300,6 +313,11 @@ async function fetchCheats() {
             
             const tagsHtml = rawTags.map(t => `<span class="tag glass">${t}</span>`).join('');
             const dataTagsAttr = rawTags.join(',');
+
+            // Проверяем, подписан ли пользователь на этот чит
+            const isSubscribed = userSubs.includes(cheat.id);
+            const subBtnText = isSubscribed ? `Отписаться от ${cheat.name}` : '🔔 Подписаться на обновления';
+            const subBtnStyle = isSubscribed ? 'style="background: rgba(255, 82, 82, 0.15); border-color: rgba(255, 82, 82, 0.3);"' : '';
 
             const card = document.createElement('div');
             card.className = 'card glass';
@@ -330,8 +348,8 @@ async function fetchCheats() {
                         Скачать
                     </button>
                     
-                    <button class="subscribe-btn" onclick="toggleSubscription(${cheat.id}, '${cheat.name.replace(/'/g, "\\'")}')" id="sub-btn-${cheat.id}" data-subscribed="false">
-                        🔔 Подписаться на обновления
+                    <button class="subscribe-btn" onclick="toggleSubscription(${cheat.id}, '${cheat.name.replace(/'/g, "\\'")}')" id="sub-btn-${cheat.id}" data-subscribed="${isSubscribed}" ${subBtnStyle}>
+                        ${subBtnText}
                     </button>
                     
                     <div class="admin-actions" style="display: ${document.body.classList.contains('admin-mode') ? 'flex' : 'none'}; margin-top: 15px; gap: 10px;">
@@ -351,44 +369,8 @@ async function fetchCheats() {
             catContainer.innerHTML += `<button class="cat-btn glass" onclick="filterCards('${tag}')">${tag}</button>`;
         });
 
-        // Загружаем подписки пользователя и обновляем кнопки
-        loadUserSubscriptions();
-
     } catch (e) {
         document.getElementById('cards-container').innerHTML = '<div style="text-align:center; color:red;">Ошибка загрузки</div>';
-    }
-}
-
-async function loadUserSubscriptions() {
-    // Ждем появления ID пользователя, если его нет сразу
-    let currentUser = window.Telegram.WebApp.initDataUnsafe?.user;
-    
-    if (!currentUser || !currentUser.id) {
-        // Пробуем еще раз через 500мс
-        setTimeout(loadUserSubscriptions, 500);
-        return;
-    }
-
-    const userId = String(currentUser.id);
-
-    try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/subscriptions?user_id=eq.${userId}&select=cheat_id`, { headers: SB_HEADERS });
-        const subs = await res.json();
-
-        if (Array.isArray(subs)) {
-            subs.forEach(sub => {
-                const btn = document.getElementById(`sub-btn-${sub.cheat_id}`);
-                if (btn) {
-                    const card = btn.closest('.card');
-                    const cheatName = card ? card.querySelector('h2')?.textContent || 'чита' : 'чита';
-                    btn.dataset.subscribed = 'true';
-                    btn.textContent = 'Отписаться от ' + cheatName;
-                    btn.style.background = 'rgba(255, 82, 82, 0.15)';
-                    btn.style.borderColor = 'rgba(255, 82, 82, 0.3)';
-                }
-            });
-        }
-    } catch (e) {
     }
 }
 
