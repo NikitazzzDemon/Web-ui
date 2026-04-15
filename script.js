@@ -7,7 +7,8 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const SB_HEADERS = {
     "apikey": SUPABASE_ANON_KEY,
     "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
-    "Accept-Profile": "public"
+    "Accept-Profile": "public",
+    "Content-Profile": "public"
 };
 
 const botUsername = "Demons_moderation_bot";
@@ -277,9 +278,30 @@ async function fetchCheats() {
     `;
     
     try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/cheats?select=*&order=id.desc`, { headers: SB_HEADERS });
-        const cheats = await res.json();
+        // 1. Ждем ID пользователя (до 2 секунд)
+        let userId = null;
+        for (let i = 0; i < 10; i++) {
+            const currentUser = window.Telegram.WebApp.initDataUnsafe?.user;
+            if (currentUser && currentUser.id) {
+                userId = String(currentUser.id);
+                break;
+            }
+            await new Promise(r => setTimeout(r, 200));
+        }
+
+        // 2. Параллельно грузим читы и подписки
+        const cheatsPromise = fetch(`${SUPABASE_URL}/rest/v1/cheats?select=*&order=id.desc`, { headers: SB_HEADERS }).then(r => r.json());
         
+        let subsPromise = Promise.resolve([]);
+        if (userId) {
+            subsPromise = fetch(`${SUPABASE_URL}/rest/v1/subscriptions?user_id=eq.${userId}&select=cheat_id&t=${Date.now()}`, { headers: SB_HEADERS })
+                .then(r => r.json())
+                .catch(() => []);
+        }
+
+        const [cheats, subs] = await Promise.all([cheatsPromise, subsPromise]);
+        const subscribedIds = Array.isArray(subs) ? subs.map(s => s.cheat_id) : [];
+
         container.innerHTML = '';
 
         if (!Array.isArray(cheats) || cheats.length === 0) {
@@ -300,6 +322,11 @@ async function fetchCheats() {
             
             const tagsHtml = rawTags.map(t => `<span class="tag glass">${t}</span>`).join('');
             const dataTagsAttr = rawTags.join(',');
+
+            // Статус подписки на основе загруженных данных
+            const isSubscribed = subscribedIds.includes(cheat.id);
+            const subBtnText = isSubscribed ? `Отписаться от ${cheat.name}` : '🔔 Подписаться на обновления';
+            const subBtnStyle = isSubscribed ? 'style="background: rgba(255, 82, 82, 0.15); border-color: rgba(255, 82, 82, 0.3);"' : '';
 
             const card = document.createElement('div');
             card.className = 'card glass';
@@ -330,8 +357,8 @@ async function fetchCheats() {
                         Скачать
                     </button>
                     
-                    <button class="subscribe-btn" onclick="toggleSubscription(${cheat.id}, '${cheat.name.replace(/'/g, "\\'")}')" id="sub-btn-${cheat.id}" data-subscribed="false">
-                        🔔 Подписаться на обновления
+                    <button class="subscribe-btn" onclick="toggleSubscription(${cheat.id}, '${cheat.name.replace(/'/g, "\\'")}')" id="sub-btn-${cheat.id}" data-subscribed="${isSubscribed}" ${subBtnStyle}>
+                        ${subBtnText}
                     </button>
                     
                     <div class="admin-actions" style="display: ${document.body.classList.contains('admin-mode') ? 'flex' : 'none'}; margin-top: 15px; gap: 10px;">
@@ -351,50 +378,9 @@ async function fetchCheats() {
             catContainer.innerHTML += `<button class="cat-btn glass" onclick="filterCards('${tag}')">${tag}</button>`;
         });
 
-        // СИНХРОНИЗАЦИЯ ПОДПИСОК (Ждем юзера и обновляем кнопки)
-        syncSubscriptions();
-
     } catch (e) {
         document.getElementById('cards-container').innerHTML = '<div style="text-align:center; color:red;">Ошибка загрузки</div>';
     }
-}
-
-async function syncSubscriptions() {
-    let currentUser = window.Telegram.WebApp.initDataUnsafe?.user;
-    
-    if (!currentUser || !currentUser.id) {
-        setTimeout(syncSubscriptions, 500);
-        return;
-    }
-
-    const userId = String(currentUser.id);
-    try {
-        // Добавляем кэш-бастер, чтобы избежать кэширования старого состояния базой
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/subscriptions?user_id=eq.${userId}&select=cheat_id&t=${Date.now()}`, { headers: SB_HEADERS });
-        const subs = await res.json();
-        
-        if (Array.isArray(subs)) {
-            const subscribedIds = subs.map(s => s.cheat_id);
-            
-            document.querySelectorAll('.subscribe-btn').forEach(btn => {
-                const id = parseInt(btn.id.replace('sub-btn-', ''));
-                const card = btn.closest('.card');
-                const name = card ? card.querySelector('h2')?.textContent || 'чита' : 'чита';
-                
-                if (subscribedIds.includes(id)) {
-                    btn.dataset.subscribed = 'true';
-                    btn.textContent = 'Отписаться от ' + name;
-                    btn.style.background = 'rgba(255, 82, 82, 0.15)';
-                    btn.style.borderColor = 'rgba(255, 82, 82, 0.3)';
-                } else {
-                    btn.dataset.subscribed = 'false';
-                    btn.textContent = '🔔 Подписаться на обновления';
-                    btn.style.background = '';
-                    btn.style.borderColor = '';
-                }
-            });
-        }
-    } catch (e) {}
 }
 
 // Логика карточки (свернуть/развернуть)
