@@ -362,7 +362,6 @@ async function fetchCheats() {
 async function syncSubscriptions() {
     let currentUser = window.Telegram.WebApp.initDataUnsafe?.user;
     
-    // Если юзера еще нет, ждем и пробуем снова
     if (!currentUser || !currentUser.id) {
         setTimeout(syncSubscriptions, 500);
         return;
@@ -370,7 +369,8 @@ async function syncSubscriptions() {
 
     const userId = String(currentUser.id);
     try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/subscriptions?user_id=eq.${userId}&select=cheat_id`, { headers: SB_HEADERS });
+        // Добавляем кэш-бастер, чтобы избежать кэширования старого состояния базой
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/subscriptions?user_id=eq.${userId}&select=cheat_id&t=${Date.now()}`, { headers: SB_HEADERS });
         const subs = await res.json();
         
         if (Array.isArray(subs)) {
@@ -426,25 +426,22 @@ window.toggleSubscription = async function(id, name) {
     const btn = document.getElementById(`sub-btn-${id}`);
     if (!btn) return;
 
-    // Считываем текущее состояние прямо с кнопки
-    const wasSubscribed = btn.dataset.subscribed === 'true';
+    const isSubscribed = btn.dataset.subscribed === 'true';
     
     btn.textContent = '⏳ Ожидание...';
     btn.disabled = true;
 
-    // Перекидываем в бота для переключения в базе
-    tg.openTelegramLink(`https://t.me/${botUsername}?start=sub_${id}`);
+    // Используем явные команды вместо переключателя
+    const action = isSubscribed ? 'unsub' : 'sub';
+    tg.openTelegramLink(`https://t.me/${botUsername}?start=${action}_${id}`);
 
-    // Через паузу обновляем UI под НОВОЕ состояние
     setTimeout(() => {
-        if (wasSubscribed) {
-            // Был подписан -> Стал отписан
+        if (isSubscribed) {
             btn.dataset.subscribed = 'false';
             btn.textContent = '🔔 Подписаться на обновления';
             btn.style.background = '';
             btn.style.borderColor = '';
         } else {
-            // Не был подписан -> Стал подписан
             btn.dataset.subscribed = 'true';
             btn.textContent = '✓ Успешная подписка';
             btn.style.background = 'rgba(0, 200, 83, 0.15)';
