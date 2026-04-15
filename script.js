@@ -20,86 +20,17 @@ const BACKGROUND_URLS = {
     sun: 'https://i.ibb.co/WWXGyWGP/df79dd417c696e8c13597e1409af12e1.jpg'
 };
 
-console.log('[DEBUG] WebApp загружен, версия:', tg.version);
-
-// --- СОВМЕСТИМОСТЬ (Fallback для старых версий Telegram) ---
-const safeTg = {
-    showAlert: (msg) => {
-        try {
-            tg.showAlert(msg);
-        } catch (e) {
-            alert(msg);
-        }
-    },
-    showConfirm: (msg, callback) => {
-        try {
-            tg.showConfirm(msg, callback);
-        } catch (e) {
-            const result = confirm(msg);
-            callback(result);
-        }
-    },
-    haptic: (type = 'light') => {
-        try {
-            if (type === 'success' || type === 'warning' || type === 'error') {
-                tg.HapticFeedback.notificationOccurred(type);
-            } else {
-                tg.HapticFeedback.impactOccurred(type);
-            }
-        } catch (e) {
-            console.warn('[HAPTIC] Not supported');
-        }
-    }
-};
-
 // --- ГЛОБАЛЬНЫЕ ФУНКЦИИ АДМИНА ---
-window.deleteCheat = async function(id) {
-    console.log('[DELETE] Попытка удаления ID:', id);
-    safeTg.haptic('warning');
-    
-    safeTg.showConfirm('Удалить этот чит полностью?', async (confirmed) => {
-        console.log('[DELETE] Подтверждение:', confirmed);
+window.deleteCheat = function(id) {
+    tg.HapticFeedback.impactOccurred('warning');
+    tg.showConfirm('Вы точно хотите удалить этот пост?', (confirmed) => {
         if (confirmed) {
-            const url = `${SUPABASE_URL}/rest/v1/cheats?id=eq.${id}`;
-            console.log('[DELETE] Запрос на:', url);
-            
-            try {
-                const res = await fetch(url, {
-                    method: 'DELETE',
-                    headers: {
-                        ...SB_HEADERS,
-                        "Content-Type": "application/json",
-                        "Prefer": "return=minimal"
-                    }
-                });
-                
-                console.log('[DELETE] Статус ответа:', res.status);
-                
-                if (res.ok) {
-                    console.log('[DELETE] Успешно!');
-                    safeTg.haptic('success');
-                    fetchCheats(); // Перезагружаем список
-                } else {
-                    const errorText = await res.text();
-                    console.error('[DELETE] Ошибка:', errorText);
-                    
-                    // Если прямая очистка не сработала (из-за RLS), предлагаем бот-метод
-                    safeTg.showConfirm(`Ошибка удаления (${res.status}). Перейти в бота для удаления?`, (goBot) => {
-                        if (goBot) {
-                            tg.openTelegramLink(`https://t.me/${botUsername}?start=del_${id}`);
-                        }
-                    });
-                }
-            } catch (err) {
-                console.error('[DELETE] Исключение:', err);
-                safeTg.showAlert('Ошибка сети при удалении: ' + err.message);
-            }
+            tg.openTelegramLink(`https://t.me/${botUsername}?start=del_${id}`);
         }
     });
 };
 
 window.editCheatFile = function(id) {
-    console.log('[ADMIN] Редактирование файла для ID:', id);
     tg.openTelegramLink(`https://t.me/${botUsername}?start=edit_${id}`);
 };
 
@@ -114,26 +45,21 @@ if (user) {
 
 // НОВАЯ ФУНКЦИЯ: Динамическое обновление счетчика
 function updateProfileStats() {
-    // Получаем ID заново прямо перед запросом
     const currentUser = window.Telegram.WebApp.initDataUnsafe?.user;
     
     if (!currentUser || !currentUser.id) {
-        console.error("ID пользователя не найден в Telegram WebApp");
         return;
     }
-
-    console.log("Запрос статистики для:", currentUser.id);
 
     fetch(`${SUPABASE_URL}/rest/v1/users?user_id=eq.${currentUser.id}&select=downloads`, { headers: SB_HEADERS })
         .then(res => res.json())
         .then(data => {
-            console.log("Получены данные:", data);
             const countElement = document.getElementById('downloads-count');
             if (countElement) {
                 countElement.innerText = (data[0] && data[0].downloads) ? data[0].downloads : 0;
             }
         })
-        .catch(err => console.error("Ошибка при получении статистики:", err));
+        .catch(err => {});
 }
 
 // Вызываем при клике на кнопки навигации
@@ -157,16 +83,15 @@ let avatarClicks = 0;
 document.getElementById('user-avatar').addEventListener('click', () => {
     avatarClicks++;
     if (avatarClicks === 5) {
-        safeTg.haptic('success');
+        tg.HapticFeedback.notificationOccurred('success');
         document.body.classList.toggle('admin-mode');
         
-        // Показываем/скрываем кнопки админа на всех карточках
         const adminBlocks = document.querySelectorAll('.admin-actions');
         adminBlocks.forEach(block => {
             block.style.display = document.body.classList.contains('admin-mode') ? 'flex' : 'none';
         });
 
-        safeTg.showAlert(document.body.classList.contains('admin-mode') ? 'Режим модератора АКТИВИРОВАН.' : 'Режим модератора ВЫКЛЮЧЕН');
+        tg.showAlert(document.body.classList.contains('admin-mode') ? 'Режим модератора АКТИВИРОВАН.' : 'Режим модератора ВЫКЛЮЧЕН');
         avatarClicks = 0;
     }
 });
@@ -175,7 +100,6 @@ document.getElementById('user-avatar').addEventListener('click', () => {
 const navButtons = document.querySelectorAll('.nav-btn');
 const views = document.querySelectorAll('.view');
 
-// НОВАЯ ФУНКЦИЯ: Движение индикатора
 function updateNavIndicator() {
     const activeBtn = document.querySelector('.bottom-nav .nav-btn.active');
     const indicator = document.querySelector('.nav-indicator');
@@ -191,11 +115,10 @@ function switchView(targetId) {
     
     document.getElementById(targetId).classList.add('active');
     
-    // Подсвечиваем кнопку в нижней панели, если она там есть
     const bottomBtn = document.querySelector(`.nav-btn[data-target="${targetId}"]`);
     if(bottomBtn) {
         bottomBtn.classList.add('active');
-        updateNavIndicator(); // Двигаем полоску при клике
+        updateNavIndicator();
     }
 }
 
@@ -203,18 +126,16 @@ navButtons.forEach(btn => {
     btn.addEventListener('click', () => switchView(btn.getAttribute('data-target')));
 });
 
-// Вызываем при загрузке страницы и при изменении размера экрана
 window.addEventListener('DOMContentLoaded', updateNavIndicator);
 window.addEventListener('resize', updateNavIndicator);
 
-// КЛИК ПО ИКОНКЕ ПРОФИЛЯ СЛЕВА ВВЕРХУ (Требование 1)
 document.getElementById('top-profile-btn').addEventListener('click', () => {
-    safeTg.haptic('light');
+    tg.HapticFeedback.impactOccurred('light');
     switchView('view-profile');
 });
 
 
-// --- Темы и Анимация частиц (Требование 3) ---
+// --- Темы и Анимация частиц ---
 const particlesContainer = document.getElementById('particles');
 
 function createParticles(theme) {
@@ -228,15 +149,12 @@ function createParticles(theme) {
         let p = document.createElement('div');
         p.className = theme === 'rain' ? 'raindrop' : 'snowflake';
         
-        // Рандомная позиция по горизонтали
         p.style.left = Math.random() * 100 + 'vw';
         
         if (theme === 'rain') {
-            // Дождь: падает быстро
             p.style.animationDuration = (Math.random() * 0.5 + 0.5) + 's'; 
             p.style.animationDelay = (Math.random() * 2) + 's';
         } else {
-            // Снег: падает медленно, снежинки разного размера
             const size = Math.random() * 2.5 + 1.5; 
             p.style.width = size + 'px';
             p.style.height = size + 'px';
@@ -281,7 +199,6 @@ document.querySelectorAll('input[name="theme"]').forEach(option => {
     });
 });
 
-// Загружаем сохранённую тему при загрузке страницы
 function loadSavedTheme() {
     const savedTheme = localStorage.getItem('selected-theme') || 'custom';
     const themeInput = document.querySelector(`input[name="theme"][value="${savedTheme}"]`);
@@ -296,18 +213,15 @@ function loadSavedTheme() {
 
 // Скачивание с анимацией
 window.downloadCheat = function(id) {
-    safeTg.haptic('light');
+    tg.HapticFeedback.impactOccurred('light');
     
-    // Показываем анимацию загрузки
     const loader = document.getElementById('loading-overlay');
     loader.classList.add('active');
     
-    // Имитируем задержку для красоты анимации (например, 2 секунды)
     setTimeout(() => {
         const link = `https://t.me/${botUsername}?start=dl_${id}`;
         tg.openTelegramLink(link);
         
-        // Скрываем загрузку через некоторое время
         setTimeout(() => {
             loader.classList.remove('active');
         }, 500);
@@ -316,8 +230,7 @@ window.downloadCheat = function(id) {
 
 // Админ: Смена файла
 window.editCheatFile = function(id) {
-    safeTg.haptic('medium');
-    // Открываем бот с командой edit_ через deep link
+    tg.HapticFeedback.impactOccurred('medium');
     const editUrl = `https://t.me/${botUsername}?start=edit_${id}`;
     tg.openTelegramLink(editUrl);
 };
@@ -442,7 +355,6 @@ async function fetchCheats() {
         loadUserSubscriptions();
 
     } catch (e) {
-        console.error(e);
         document.getElementById('cards-container').innerHTML = '<div style="text-align:center; color:red;">Ошибка загрузки</div>';
     }
 }
@@ -471,7 +383,6 @@ async function loadUserSubscriptions() {
             });
         }
     } catch (e) {
-        console.error('Ошибка загрузки подписок:', e);
     }
 }
 
@@ -500,46 +411,73 @@ document.querySelectorAll('.modal-close-icon, .modal-close-btn').forEach(b => b.
 modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
 
 window.toggleSubscription = async function(id, name) {
-    safeTg.haptic('light');
+    tg.HapticFeedback.impactOccurred('light');
     const btn = document.getElementById(`sub-btn-${id}`);
-    if (btn) {
-        btn.textContent = '⏳ Ожидание...';
-        btn.disabled = true;
+    if (!btn) return;
+
+    const currentUser = window.Telegram.WebApp.initDataUnsafe?.user;
+    if (!currentUser || !currentUser.id) {
+        tg.showAlert('Ошибка: пользователь не определен');
+        return;
     }
-    tg.openTelegramLink(`https://t.me/${botUsername}?start=sub_${id}`);
-    setTimeout(async () => {
-        const currentUser = window.Telegram.WebApp.initDataUnsafe?.user;
-        if (currentUser && currentUser.id) {
-            const userId = String(currentUser.id);
-            try {
-                const res = await fetch(`${SUPABASE_URL}/rest/v1/subscriptions?cheat_id=eq.${id}&user_id=eq.${userId}&select=cheat_id`, { headers: SB_HEADERS });
-                const data = await res.json();
-                const isSubscribed = Array.isArray(data) && data.length > 0;
-                if (btn) {
-                    btn.dataset.subscribed = isSubscribed ? 'true' : 'false';
-                    if (isSubscribed) {
-                        btn.textContent = 'Отписаться от ' + name;
-                        btn.style.background = 'rgba(255, 82, 82, 0.15)';
-                        btn.style.borderColor = 'rgba(255, 82, 82, 0.3)';
-                    } else {
-                        btn.textContent = '🔔 Подписаться на обновления';
-                        btn.style.background = '';
-                        btn.style.borderColor = '';
-                    }
-                    btn.disabled = false;
-                }
-            } catch (e) {
-                console.error('Ошибка проверки подписки:', e);
-                if (btn) {
-                    btn.textContent = '🔔 Подписаться на обновления';
-                    btn.disabled = false;
-                }
+
+    const userId = String(currentUser.id);
+    const isSubscribed = btn.dataset.subscribed === 'true';
+
+    btn.textContent = '⏳ Ожидание...';
+    btn.disabled = true;
+
+    try {
+        if (isSubscribed) {
+            // Отписаться
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/subscriptions?cheat_id=eq.${id}&user_id=eq.${userId}`, {
+                method: 'DELETE',
+                headers: SB_HEADERS
+            });
+
+            if (res.ok) {
+                btn.dataset.subscribed = 'false';
+                btn.textContent = '🔔 Подписаться на обновления';
+                btn.style.background = '';
+                btn.style.borderColor = '';
+            } else {
+                throw new Error('Ошибка сервера');
             }
-        } else if (btn) {
-            btn.textContent = '🔔 Подписаться на обновления';
-            btn.disabled = false;
+        } else {
+            // Подписаться
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/subscriptions`, {
+                method: 'POST',
+                headers: {
+                    ...SB_HEADERS,
+                    "Content-Type": "application/json",
+                    "Prefer": "return=minimal"
+                },
+                body: JSON.stringify({
+                    cheat_id: id,
+                    user_id: userId
+                })
+            });
+
+            if (res.ok) {
+                btn.dataset.subscribed = 'true';
+                btn.textContent = 'Отписаться от ' + name;
+                btn.style.background = 'rgba(255, 82, 82, 0.15)';
+                btn.style.borderColor = 'rgba(255, 82, 82, 0.3)';
+            } else {
+                throw new Error('Ошибка сервера');
+            }
         }
-    }, 1500);
+    } catch (e) {
+        // Восстанавливаем состояние при ошибке
+        if (isSubscribed) {
+            btn.textContent = 'Отписаться от ' + name;
+        } else {
+            btn.textContent = '🔔 Подписаться на обновления';
+        }
+        tg.showAlert('Ошибка при изменении подписки');
+    } finally {
+        btn.disabled = false;
+    }
 };
 
 // Поиск (локальный по названиям читов)
