@@ -277,22 +277,9 @@ async function fetchCheats() {
     `;
     
     try {
-        // 1. Сначала пытаемся получить данные пользователя
-        let currentUser = window.Telegram.WebApp.initDataUnsafe?.user;
-        let userSubs = [];
-
-        // 2. Параллельно загружаем читы и (если есть юзер) его подписки
-        const cheatsPromise = fetch(`${SUPABASE_URL}/rest/v1/cheats?select=*&order=id.desc`, { headers: SB_HEADERS }).then(r => r.json());
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/cheats?select=*&order=id.desc`, { headers: SB_HEADERS });
+        const cheats = await res.json();
         
-        let subsPromise = Promise.resolve([]);
-        if (currentUser && currentUser.id) {
-            const userId = String(currentUser.id);
-            subsPromise = fetch(`${SUPABASE_URL}/rest/v1/subscriptions?user_id=eq.${userId}&select=cheat_id`, { headers: SB_HEADERS }).then(r => r.json());
-        }
-
-        const [cheats, subs] = await Promise.all([cheatsPromise, subsPromise]);
-        userSubs = Array.isArray(subs) ? subs.map(s => s.cheat_id) : [];
-
         container.innerHTML = '';
 
         if (!Array.isArray(cheats) || cheats.length === 0) {
@@ -313,11 +300,6 @@ async function fetchCheats() {
             
             const tagsHtml = rawTags.map(t => `<span class="tag glass">${t}</span>`).join('');
             const dataTagsAttr = rawTags.join(',');
-
-            // Проверяем, подписан ли пользователь на этот чит
-            const isSubscribed = userSubs.includes(cheat.id);
-            const subBtnText = isSubscribed ? `Отписаться от ${cheat.name}` : '🔔 Подписаться на обновления';
-            const subBtnStyle = isSubscribed ? 'style="background: rgba(255, 82, 82, 0.15); border-color: rgba(255, 82, 82, 0.3);"' : '';
 
             const card = document.createElement('div');
             card.className = 'card glass';
@@ -348,8 +330,8 @@ async function fetchCheats() {
                         Скачать
                     </button>
                     
-                    <button class="subscribe-btn" onclick="toggleSubscription(${cheat.id}, '${cheat.name.replace(/'/g, "\\'")}')" id="sub-btn-${cheat.id}" data-subscribed="${isSubscribed}" ${subBtnStyle}>
-                        ${subBtnText}
+                    <button class="subscribe-btn" onclick="toggleSubscription(${cheat.id}, '${cheat.name.replace(/'/g, "\\'")}')" id="sub-btn-${cheat.id}" data-subscribed="false">
+                        🔔 Подписаться на обновления
                     </button>
                     
                     <div class="admin-actions" style="display: ${document.body.classList.contains('admin-mode') ? 'flex' : 'none'}; margin-top: 15px; gap: 10px;">
@@ -369,9 +351,50 @@ async function fetchCheats() {
             catContainer.innerHTML += `<button class="cat-btn glass" onclick="filterCards('${tag}')">${tag}</button>`;
         });
 
+        // СИНХРОНИЗАЦИЯ ПОДПИСОК (Ждем юзера и обновляем кнопки)
+        syncSubscriptions();
+
     } catch (e) {
         document.getElementById('cards-container').innerHTML = '<div style="text-align:center; color:red;">Ошибка загрузки</div>';
     }
+}
+
+async function syncSubscriptions() {
+    let currentUser = window.Telegram.WebApp.initDataUnsafe?.user;
+    
+    // Если юзера еще нет, ждем и пробуем снова
+    if (!currentUser || !currentUser.id) {
+        setTimeout(syncSubscriptions, 500);
+        return;
+    }
+
+    const userId = String(currentUser.id);
+    try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/subscriptions?user_id=eq.${userId}&select=cheat_id`, { headers: SB_HEADERS });
+        const subs = await res.json();
+        
+        if (Array.isArray(subs)) {
+            const subscribedIds = subs.map(s => s.cheat_id);
+            
+            document.querySelectorAll('.subscribe-btn').forEach(btn => {
+                const id = parseInt(btn.id.replace('sub-btn-', ''));
+                const card = btn.closest('.card');
+                const name = card ? card.querySelector('h2')?.textContent || 'чита' : 'чита';
+                
+                if (subscribedIds.includes(id)) {
+                    btn.dataset.subscribed = 'true';
+                    btn.textContent = 'Отписаться от ' + name;
+                    btn.style.background = 'rgba(255, 82, 82, 0.15)';
+                    btn.style.borderColor = 'rgba(255, 82, 82, 0.3)';
+                } else {
+                    btn.dataset.subscribed = 'false';
+                    btn.textContent = '🔔 Подписаться на обновления';
+                    btn.style.background = '';
+                    btn.style.borderColor = '';
+                }
+            });
+        }
+    } catch (e) {}
 }
 
 // Логика карточки (свернуть/развернуть)
@@ -403,31 +426,30 @@ window.toggleSubscription = async function(id, name) {
     const btn = document.getElementById(`sub-btn-${id}`);
     if (!btn) return;
 
-    const isSubscribed = btn.dataset.subscribed === 'true';
+    // Считываем текущее состояние прямо с кнопки
+    const wasSubscribed = btn.dataset.subscribed === 'true';
     
-    // Временно меняем текст для обратной связи
     btn.textContent = '⏳ Ожидание...';
     btn.disabled = true;
 
-    // Перекидываем в бота для фактического изменения в базе
+    // Перекидываем в бота для переключения в базе
     tg.openTelegramLink(`https://t.me/${botUsername}?start=sub_${id}`);
 
-    // Через небольшую паузу обновляем текст кнопки в UI
+    // Через паузу обновляем UI под НОВОЕ состояние
     setTimeout(() => {
-        if (isSubscribed) {
-            // Если были подписаны - теперь (после бота) будем не подписаны
+        if (wasSubscribed) {
+            // Был подписан -> Стал отписан
             btn.dataset.subscribed = 'false';
             btn.textContent = '🔔 Подписаться на обновления';
             btn.style.background = '';
             btn.style.borderColor = '';
         } else {
-            // Если не были подписаны - теперь будем подписаны
+            // Не был подписан -> Стал подписан
             btn.dataset.subscribed = 'true';
             btn.textContent = '✓ Успешная подписка';
             btn.style.background = 'rgba(0, 200, 83, 0.15)';
             btn.style.borderColor = 'rgba(0, 200, 83, 0.3)';
             
-            // Через 2 секунды меняем "Успешная подписка" на "Отписаться от..."
             setTimeout(() => {
                 btn.textContent = 'Отписаться от ' + name;
                 btn.style.background = 'rgba(255, 82, 82, 0.15)';
