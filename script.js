@@ -7,13 +7,19 @@ async function checkAdminStatusAndApply() {
         console.log("User data not available for admin check.");
         return;
     }
+    
+    const userId = tg.initDataUnsafe.user.id;
+    
     try {
-        const response = await tg.sendData(JSON.stringify({
-            query_type: 'get_admin_status',
-            user_id: tg.initDataUnsafe.user.id
-        }));
-        const data = JSON.parse(response);
-        if (data.is_admin) {
+        // Делаем прямой запрос в Supabase для проверки админки
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/users?user_id=eq.${userId}&select=is_admin`, {
+            headers: SB_HEADERS
+        });
+        
+        const data = await response.json();
+        
+        // Если пользователь найден в БД и is_admin = true
+        if (data.length > 0 && data[0].is_admin === true) {
             document.body.classList.add('admin-mode');
             document.querySelectorAll('.admin-actions').forEach(block => {
                 block.style.display = 'flex';
