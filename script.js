@@ -38,7 +38,7 @@ const SB_HEADERS = {
     "Content-Profile": "public"
 };
 
-const botUsername = "Demons_moderation_bot";
+const botUsername = "@DemonsFiles_bot";
 let modalDataStorage = {};
 
 const BACKGROUND_URLS = {
