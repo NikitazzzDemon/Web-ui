@@ -193,7 +193,7 @@ document.querySelectorAll('input[name="theme"]').forEach(option => {
         } else if (theme === 'azure_twilight') {
             document.body.classList.add('theme-azure_twilight', 'light-bg');
             document.body.style.setProperty('--azure_twilight-bg', `url('${BACKGROUND_URLS.azure_twilight}')`);
-            createParticles('azure_twilight');
+            createParticles('rain');
         } else if (theme === 'snowy_night') {
             document.body.classList.add('theme-snowy_night', 'light-bg');
             document.body.style.setProperty('--snowy_night-bg', `url('${BACKGROUND_URLS.snowy_night}')`);
@@ -480,5 +480,5 @@ document.getElementById('search-input').addEventListener('input', (e) => {
 tg.ready();
 loadSavedTheme(); // Загружаем сохранённую тему
 fetchCheats();
-createParticles('azure_twilight');
+createParticles('rain');
 checkAdminStatusAndApply(); // Проверяем статус админа и применяем
