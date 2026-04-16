@@ -2,6 +2,33 @@ const tg = window.Telegram.WebApp;
 tg.expand();
 tg.setHeaderColor('#080808');
 
+async function checkAdminStatusAndApply() {
+    if (!tg.initDataUnsafe || !tg.initDataUnsafe.user || !tg.initDataUnsafe.user.id) {
+        console.log("User data not available for admin check.");
+        return;
+    }
+    try {
+        const response = await tg.sendData(JSON.stringify({
+            query_type: 'get_admin_status',
+            user_id: tg.initDataUnsafe.user.id
+        }));
+        const data = JSON.parse(response);
+        if (data.is_admin) {
+            document.body.classList.add('admin-mode');
+            document.querySelectorAll('.admin-actions').forEach(block => {
+                block.style.display = 'flex';
+            });
+        } else {
+            document.body.classList.remove('admin-mode');
+            document.querySelectorAll('.admin-actions').forEach(block => {
+                block.style.display = 'none';
+            });
+        }
+    } catch (e) {
+        console.error("Error checking admin status:", e);
+    }
+}
+
 const SUPABASE_URL = "https://epayzwjglacworkdbkmh.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwYXl6d2pnbGFjd29ya2Ria21oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MTA0NjIsImV4cCI6MjA5MDA4NjQ2Mn0.22nlKvyVL_4nuECtFtiP3TZ3suBeFNWxMQhkvxKfmmo";
 const SB_HEADERS = {
@@ -79,23 +106,7 @@ updateProfileStats();
 document.getElementById('bottom-profile-btn').addEventListener('click', updateProfileStats);
 document.getElementById('top-profile-btn').addEventListener('click', updateProfileStats);
 
-// Пасхалка на Админ-мод
-let avatarClicks = 0;
-document.getElementById('user-avatar').addEventListener('click', () => {
-    avatarClicks++;
-    if (avatarClicks === 5) {
-        tg.HapticFeedback.notificationOccurred('success');
-        document.body.classList.toggle('admin-mode');
-        
-        const adminBlocks = document.querySelectorAll('.admin-actions');
-        adminBlocks.forEach(block => {
-            block.style.display = document.body.classList.contains('admin-mode') ? 'flex' : 'none';
-        });
 
-        tg.showAlert(document.body.classList.contains('admin-mode') ? 'Режим модератора АКТИВИРОВАН.' : 'Режим модератора ВЫКЛЮЧЕН');
-        avatarClicks = 0;
-    }
-});
 
 // --- Навигация ---
 const navButtons = document.querySelectorAll('.nav-btn');
@@ -470,3 +481,4 @@ tg.ready();
 loadSavedTheme(); // Загружаем сохранённую тему
 fetchCheats();
 createParticles('azure_twilight');
+checkAdminStatusAndApply(); // Проверяем статус админа и применяем

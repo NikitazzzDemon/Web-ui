@@ -421,6 +421,54 @@ body.theme-vampire {
     backdrop-filter: blur(8px);
 }
 
+@media (min-width: 600px) {
+    #app {
+        max-width: 1200px; /* Ограничиваем максимальную ширину основного контейнера */
+        margin: 0 auto;    /* Выравниваем по центру */
+        padding: 0 20px; /* Добавляем горизонтальные отступы для десктопа */
+    }
+
+    .header {
+        padding: 20px;
+    }
+
+    .search-wrapper {
+        max-width: 700px; /* Ограничиваем ширину строки поиска и кнопок */
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .categories {
+        max-width: 700px; /* Ограничиваем ширину контейнера категорий */
+        margin-left: auto;
+        margin-right: auto;
+        justify-content: center; /* Центрируем теги */
+    }
+
+    .cards-container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr); /* 2 колонки */
+        gap: 25px; /* Отступы между карточками */
+        padding: 0;
+    }
+
+    .card {
+        margin-bottom: 0; /* Убираем margin-bottom, так как gap управляет отступами */
+    }
+
+    .bottom-nav {
+        max-width: 500px; /* Ограничиваем ширину нижнего меню */
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 15px 20px;
+    }
+
+    body {
+        padding-bottom: 120px; /* Увеличиваем нижний отступ, если меню шире */
+    }
+}
+
+
 .subscribe-btn:hover {
     background: rgba(255, 255, 255, 0.12);
 }
