@@ -15,10 +15,10 @@ const botUsername = "Demons_moderation_bot";
 let modalDataStorage = {};
 
 const BACKGROUND_URLS = {
-    custom: 'https://i.ibb.co/sdtYVVQy/2c6b0208a4ca4a574f8f0a88ab7fa050.jpg',
-    rain: 'https://i.ibb.co/fYkkjF7s/5c4be6c13f5b1596f6da40eaaf6c1518.jpg',
-    snow: 'https://i.ibb.co/kg0JfXMM/f3fa7b75c87277e7368e03b41b69911c.jpg',
-    sun: 'https://i.ibb.co/WWXGyWGP/df79dd417c696e8c13597e1409af12e1.jpg'
+    pixel_space: 'https://i.ibb.co/sdtYVVQy/2c6b0208a4ca4a574f8f0a88ab7fa050.jpg',
+    azure_twilight: 'https://i.ibb.co/fYkkjF7s/5c4be6c13f5b1596f6da40eaaf6c1518.jpg',
+    snowy_night: 'https://i.ibb.co/kg0JfXMM/f3fa7b75c87277e7368e03b41b69911c.jpg',
+    vampire: 'https://i.ibb.co/WWXGyWGP/df79dd417c696e8c13597e1409af12e1.jpg'
 };
 
 // --- ГЛОБАЛЬНЫЕ ФУНКЦИИ АДМИНА ---
@@ -175,21 +175,21 @@ document.querySelectorAll('input[name="theme"]').forEach(option => {
         document.body.className = '';
         document.body.classList.remove('light-bg');
 
-        if (theme === 'custom') {
-            document.body.classList.add('theme-custom');
-            document.body.style.setProperty('--custom-bg', `url('${BACKGROUND_URLS.custom}')`);
+        if (theme === 'pixel_space') {
+            document.body.classList.add('theme-pixel_space');
+            document.body.style.setProperty('--pixel_space-bg', `url('${BACKGROUND_URLS.pixel_space}')`);
             createParticles('none');
-        } else if (theme === 'rain') {
-            document.body.classList.add('theme-rain', 'light-bg');
-            document.body.style.setProperty('--rain-bg', `url('${BACKGROUND_URLS.rain}')`);
-            createParticles('rain');
-        } else if (theme === 'snow') {
-            document.body.classList.add('theme-snow', 'light-bg');
-            document.body.style.setProperty('--snow-bg', `url('${BACKGROUND_URLS.snow}')`);
-            createParticles('snow');
-        } else if (theme === 'sun') {
-            document.body.classList.add('theme-sun', 'light-bg');
-            document.body.style.setProperty('--sun-bg', `url('${BACKGROUND_URLS.sun}')`);
+        } else if (theme === 'azure_twilight') {
+            document.body.classList.add('theme-azure_twilight', 'light-bg');
+            document.body.style.setProperty('--azure_twilight-bg', `url('${BACKGROUND_URLS.azure_twilight}')`);
+            createParticles('azure_twilight');
+        } else if (theme === 'snowy_night') {
+            document.body.classList.add('theme-snowy_night', 'light-bg');
+            document.body.style.setProperty('--snowy_night-bg', `url('${BACKGROUND_URLS.snowy_night}')`);
+            createParticles('snowy_night');
+        } else if (theme === 'vampire') {
+            document.body.classList.add('theme-vampire', 'light-bg');
+            document.body.style.setProperty('--vampire-bg', `url('${BACKGROUND_URLS.vampire}')`);
             createParticles('none');
         } else {
             document.body.classList.add(`theme-${theme}`);
@@ -201,14 +201,14 @@ document.querySelectorAll('input[name="theme"]').forEach(option => {
 });
 
 function loadSavedTheme() {
-    const savedTheme = localStorage.getItem('selected-theme') || 'custom';
+    const savedTheme = localStorage.getItem('selected-theme') || 'pixel_space';
     const themeInput = document.querySelector(`input[name="theme"][value="${savedTheme}"]`);
     if (themeInput) {
         themeInput.checked = true;
         themeInput.dispatchEvent(new Event('change'));
     } else {
-        document.body.classList.add('theme-custom');
-        document.body.style.setProperty('--custom-bg', `url('${BACKGROUND_URLS.custom}')`);
+        document.body.classList.add('theme-pixel_space');
+        document.body.style.setProperty('--pixel_space-bg', `url('${BACKGROUND_URLS.pixel_space}')`);
     }
 }
 
@@ -469,4 +469,4 @@ document.getElementById('search-input').addEventListener('input', (e) => {
 tg.ready();
 loadSavedTheme(); // Загружаем сохранённую тему
 fetchCheats();
-createParticles('rain');
+createParticles('azure_twilight');

@@ -89,12 +89,44 @@ body {
     100% { transform: translate3d(20px, 30px, 0); }
 }
 
-body.theme-custom {
-    background-image: var(--custom-bg);
+body.theme-pixel_space {
+    background-image: var(--pixel_space-bg);
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
-    /* УБРАНО will-change: transform, так как это ломает fixed элементы внутри */
+    --tag-bg: rgba(255, 255, 255, 0.1);
+    --tag-color: #fff;
+    --tag-border: rgba(255, 255, 255, 0.2);
+}
+
+body.theme-azure_twilight {
+    background-image: var(--azure_twilight-bg);
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    --tag-bg: rgba(0, 0, 0, 0.2);
+    --tag-color: #fff;
+    --tag-border: rgba(0, 0, 0, 0.3);
+}
+
+body.theme-snowy_night {
+    background-image: var(--snowy_night-bg);
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    --tag-bg: rgba(0, 0, 0, 0.25);
+    --tag-color: #eee;
+    --tag-border: rgba(0, 0, 0, 0.35);
+}
+
+body.theme-vampire {
+    background-image: var(--vampire-bg);
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    --tag-bg: rgba(0, 0, 0, 0.3);
+    --tag-color: #ffcccc;
+    --tag-border: rgba(255, 0, 0, 0.4);
 }
 
 .glass {
@@ -310,15 +342,11 @@ body.theme-custom {
 
 .tag {
     font-size: 12px;
-    color: #fff;
+    background: var(--tag-bg);
+    color: var(--tag-color);
     padding: 6px 12px;
     border-radius: 10px;
-}
-
-/* Для светлых фонов темы снега - теги темнее */
-body.theme-snow.light-bg .tag {
-    background: rgba(0, 0, 0, 0.25);
-    color: #333;
+    border: 1px solid var(--tag-border);
 }
 
 /* Выпадающее меню внутри карточки */
