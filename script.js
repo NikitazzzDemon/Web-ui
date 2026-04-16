@@ -480,5 +480,5 @@ document.getElementById('search-input').addEventListener('input', (e) => {
 tg.ready();
 loadSavedTheme(); // Загружаем сохранённую тему
 fetchCheats();
-createParticles('rain');
+createParticles();
 checkAdminStatusAndApply(); // Проверяем статус админа и применяем
