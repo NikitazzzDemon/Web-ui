@@ -64,6 +64,12 @@ window.deleteCheat = function(id) {
     });
 };
 
+window.createNews = function() {
+    tg.HapticFeedback.impactOccurred('heavy');
+    // Отправляем пользователя в бота с командой addnews (WebApp закроется)
+    tg.openTelegramLink(`https://t.me/${botUsername}?start=addnews`);
+};
+
 window.editCheatFile = function(id) {
     tg.openTelegramLink(`https://t.me/${botUsername}?start=edit_${id}`);
 };
