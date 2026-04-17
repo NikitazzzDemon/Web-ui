@@ -35,6 +35,35 @@ async function checkAdminStatusAndApply() {
     }
 }
 
+async function loadNews() {
+    const container = document.getElementById('news-list');
+    if (!container) return;
+
+    try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/news?select=*&order=created_at.desc`, {
+            headers: SB_HEADERS
+        });
+        const news = await response.json();
+
+        if (news.length === 0) {
+            container.innerHTML = '<div class="muted-text" style="text-align:center; padding:20px;">Новостей пока нет</div>';
+            return;
+        }
+
+        container.innerHTML = news.map(item => `
+            <div class="profile-block glass" style="margin-bottom: 15px; padding: 10px;">
+                <div style="color: var(--text-muted); font-size: 11px; margin-bottom: 8px;">
+                    ${new Date(item.created_at).toLocaleDateString()}
+                </div>
+                <div style="white-space: pre-wrap; font-size: 14px;">${item.text}</div>
+            </div>
+        `).join('');
+    } catch (e) {
+        console.error("Ошибка загрузки новостей:", e);
+    }
+}
+
+
 const SUPABASE_URL = "https://epayzwjglacworkdbkmh.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwYXl6d2pnbGFjd29ya2Ria21oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MTA0NjIsImV4cCI6MjA5MDA4NjQ2Mn0.22nlKvyVL_4nuECtFtiP3TZ3suBeFNWxMQhkvxKfmmo";
 const SB_HEADERS = {
@@ -107,6 +136,9 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         if (btn.getAttribute('data-target') === 'view-profile') {
             updateProfileStats();
+        // Внутри обработчика клика по кнопкам навигации:
+        if (targetId === 'view-news') {
+                loadNews();}
         }
     });
 });
