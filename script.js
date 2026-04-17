@@ -137,8 +137,7 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
         if (btn.getAttribute('data-target') === 'view-profile') {
             updateProfileStats();
         // Внутри обработчика клика по кнопкам навигации:
-        if (targetId === 'view-news') {
-                loadNews();}
+        if (targetId === 'view-news') loadNews();
         }
     });
 });
@@ -520,6 +519,33 @@ document.getElementById('search-input').addEventListener('input', (e) => {
         card.style.display = title.includes(query) ? 'block' : 'none';
     });
 });
+
+
+// Функция для админ-кнопки
+window.createNews = function() {
+    tg.HapticFeedback.impactOccurred('medium');
+    tg.openTelegramLink(`https://t.me/${botUsername}?start=addnews`);
+};
+
+// Загрузка новостей из БД
+async function loadNews() {
+    const container = document.getElementById('news-list');
+    try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/news?select=*&order=created_at.desc`, {
+            headers: SB_HEADERS
+        });
+        const news = await response.json();
+        container.innerHTML = news.map(item => `
+            <div class="profile-block glass" style="margin-bottom: 15px; padding: 0; overflow: hidden;">
+                <img src="${item.image_url}" style="width:100%; height:160px; object-fit:cover;">
+                <div style="padding:15px;">
+                    <div style="font-size:10px; color:var(--text-muted); margin-bottom:5px;">${new Date(item.created_at).toLocaleDateString()}</div>
+                    <div style="font-size:14px;">${item.text}</div>
+                </div>
+            </div>
+        `).join('');
+    } catch (e) { container.innerHTML = "Ошибка загрузки ленты"; }
+}
 
 tg.ready();
 loadSavedTheme(); // Загружаем сохранённую тему

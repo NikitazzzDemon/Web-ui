@@ -1005,3 +1005,11 @@ body.theme-sun #particles::before {
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
 }
+
+#news-list .profile-block {
+    border-radius: 16px;
+    transition: transform 0.2s;
+}
+#news-list img {
+    border-bottom: 1px solid var(--glass-border);
+}
