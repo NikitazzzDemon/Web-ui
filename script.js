@@ -132,15 +132,7 @@ function updateProfileStats() {
 }
 
 // Вызываем при клике на кнопки навигации
-document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        if (btn.getAttribute('data-target') === 'view-profile') {
-            updateProfileStats();
-        // Внутри обработчика клика по кнопкам навигации:
-        if (targetId === 'view-news') loadNews();
-        }
-    });
-});
+
 
 // Запрашиваем статистику при первом запуске
 updateProfileStats();
@@ -174,6 +166,13 @@ function switchView(targetId) {
     if(bottomBtn) {
         bottomBtn.classList.add('active');
         updateNavIndicator();
+    }
+
+    // Динамическая загрузка данных для разных вкладок
+    if (targetId === 'view-profile') {
+        updateProfileStats();
+    } else if (targetId === 'view-news') {
+        loadNews();
     }
 }
 
